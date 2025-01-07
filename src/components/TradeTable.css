@@ -1,0 +1,243 @@
+.trade-table-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.trade-summary {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.trade-summary h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.summary-table th,
+.summary-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.summary-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-table tr:last-child td {
+  border-bottom: none;
+}
+
+.trade-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.trade-table-wrapper {
+  max-height: 600px;
+  overflow-y: auto;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.trade-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f5f5f5;
+}
+
+.trade-table thead th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  box-shadow: 0 1px 0 0 #ddd;
+}
+
+.trade-table th,
+.trade-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  background-color: inherit;
+}
+
+.trade-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.trade-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.profit {
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+.loss {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.edit-btn,
+.delete-btn,
+.add-trade-btn,
+.save-btn,
+.cancel-btn {
+  padding: 8px 12px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.edit-btn {
+  background-color: #3498db;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.save-btn {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.add-trade-btn {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px 20px;
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+.edit-btn:hover {
+  background-color: #2980b9;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.save-btn:hover {
+  background-color: #27ae60;
+}
+
+.cancel-btn:hover {
+  background-color: #7f8c8d;
+}
+
+.add-trade-btn:hover {
+  background-color: #27ae60;
+}
+
+.table-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.adding-row {
+  background-color: #f8f9fa;
+}
+
+select.table-input {
+  background-color: white;
+  cursor: pointer;
+}
+
+.trade-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.trade-row:hover {
+  background-color: #f8f9fa;
+}
+
+.trade-row.expanded {
+  background-color: #f8f9fa;
+}
+
+.details-row {
+  background-color: #f8f9fa;
+  animation: expandRow 0.3s ease;
+}
+
+.details-row > td {
+  padding: 0 !important;
+}
+
+.collapse-icon {
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform 0.2s ease;
+  font-size: 14px;
+  color: #3498db;
+  width: 20px;
+  text-align: center;
+  vertical-align: middle;
+  position: absolute;
+  left: 12px;
+}
+
+.collapse-icon.open {
+  transform: rotate(90deg);
+}
+
+.trade-table td:first-child {
+  position: relative;
+  padding-left: 40px !important;
+}
+
+.trade-row:hover .collapse-icon {
+  color: #2980b9;
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+} 
