@@ -60,8 +60,24 @@ const SaleDetails = ({ trade, trades, indexData }) => {
       const oldestBuy = stockLedger[0];
       const sellQuantity = Math.min(remainingSell, oldestBuy.remainingQuantity);
       
-      const buyPriceTL = Number(oldestBuy.price) * Number(oldestBuy.exchangeRate);
-      const sellPriceTL = Number(trade.price) * Number(trade.exchangeRate);
+      // Birim fiyatlar
+      const buyPriceUSD = Number(oldestBuy.price);
+      const sellPriceUSD = Number(trade.price);
+      const buyExchangeRate = Number(oldestBuy.exchangeRate);
+      const sellExchangeRate = Number(trade.exchangeRate);
+
+      // TL fiyatları
+      const buyPriceTL = buyPriceUSD * buyExchangeRate;
+      const sellPriceTL = sellPriceUSD * sellExchangeRate;
+
+      // Toplam tutarlar
+      const totalBuyUSD = buyPriceUSD * sellQuantity;
+      const totalSellUSD = sellPriceUSD * sellQuantity;
+      const totalBuyTL = buyPriceTL * sellQuantity;
+      const totalSellTL = sellPriceTL * sellQuantity;
+
+      // Kâr/Zarar
+      const profitUSD = (sellPriceUSD - buyPriceUSD) * sellQuantity;
       const profitTL = (sellPriceTL - buyPriceTL) * sellQuantity;
       
       // Alışın toplam adedini ve kullanılan adedi hesapla
@@ -70,21 +86,41 @@ const SaleDetails = ({ trade, trades, indexData }) => {
       // Alış tarihinin endeks değeri
       const buyIndex = getIndexForDate(oldestBuy.date, indexData);
       
-      // Endeks değişim yüzdesi
+      // Endeks değişim yüzdesi ve adjust edilmiş fiyatlar
       let indexChange = null;
+      let adjustedBuyPriceTL = null;
+      let adjustedTotalBuyTL = null;
+      let adjustedProfitTL = null;
+
       if (buyIndex && saleIndex) {
         indexChange = ((saleIndex - buyIndex) / buyIndex) * 100;
+        
+        // %10 ve üzeri endeks değişiminde TL fiyat adjustı
+        if (indexChange >= 10) {
+          // Endeks değişimi kadar artır
+          adjustedBuyPriceTL = buyPriceTL * (1 + (indexChange / 100));
+          adjustedTotalBuyTL = adjustedBuyPriceTL * sellQuantity;
+          adjustedProfitTL = totalSellTL - adjustedTotalBuyTL;
+        }
       }
       
       details.push({
         date: oldestBuy.date,
         quantity: sellQuantity,
         totalQuantity,
-        buyPrice: Number(oldestBuy.price),
+        buyPriceUSD,
+        sellPriceUSD,
         buyPriceTL,
-        sellPrice: Number(trade.price),
         sellPriceTL,
+        totalBuyUSD,
+        totalSellUSD,
+        totalBuyTL,
+        totalSellTL,
+        profitUSD,
         profitTL,
+        adjustedBuyPriceTL,
+        adjustedTotalBuyTL,
+        adjustedProfitTL,
         indexChange,
         buyIndex,
         saleIndex
@@ -115,6 +151,7 @@ const SaleDetails = ({ trade, trades, indexData }) => {
             <th>Kullanılan / Toplam Adet</th>
             <th>Alış $ / ₺</th>
             <th>Satış $ / ₺</th>
+            <th>Kâr/Zarar ($)</th>
             <th>Kâr/Zarar (₺)</th>
             <th>Endeks Değişimi (%)</th>
           </tr>
@@ -125,13 +162,31 @@ const SaleDetails = ({ trade, trades, indexData }) => {
               <td>{detail.date}</td>
               <td>{formatNumber(detail.quantity)} / {formatNumber(detail.totalQuantity)}</td>
               <td>
-                {formatNumber(detail.buyPrice.toFixed(2))} / {formatNumber(detail.buyPriceTL.toFixed(2))}
+                {detail.indexChange >= 10 ? (
+                  <>
+                    <div>
+                      {formatNumber(detail.totalBuyUSD.toFixed(2))} / <span className="strikethrough">{formatNumber(detail.totalBuyTL.toFixed(2))}</span>
+                    </div>
+                    <div>
+                      {formatNumber(detail.totalBuyUSD.toFixed(2))} / <span className="adjusted-price">{formatNumber(detail.adjustedTotalBuyTL.toFixed(2))}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>{formatNumber(detail.totalBuyUSD.toFixed(2))} / {formatNumber(detail.totalBuyTL.toFixed(2))}</>
+                )}
               </td>
               <td>
-                {formatNumber(detail.sellPrice.toFixed(2))} / {formatNumber(detail.sellPriceTL.toFixed(2))}
+                {formatNumber(detail.totalSellUSD.toFixed(2))} / {formatNumber(detail.totalSellTL.toFixed(2))}
               </td>
-              <td className={detail.profitTL >= 0 ? 'profit' : 'loss'}>
-                {formatNumber(detail.profitTL.toFixed(2))}
+              <td className={detail.profitUSD >= 0 ? 'profit' : 'loss'}>
+                {formatNumber(detail.profitUSD.toFixed(2))}
+              </td>
+              <td className={detail.indexChange >= 10 ? 
+                (detail.adjustedProfitTL >= 0 ? 'profit' : 'loss') : 
+                (detail.profitTL >= 0 ? 'profit' : 'loss')}>
+                {detail.indexChange >= 10 ? 
+                  formatNumber(detail.adjustedProfitTL.toFixed(2)) :
+                  formatNumber(detail.profitTL.toFixed(2))}
               </td>
               <td className={detail.indexChange >= 10 ? 'profit' : ''}>
                 {detail.indexChange ? (

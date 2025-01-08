@@ -17,6 +17,7 @@
   text-align: left;
   border-bottom: 1px solid #eee;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .sale-details-table th {
@@ -49,4 +50,16 @@
   font-size: 0.9em;
   color: #666;
   font-weight: normal;
+}
+
+.sale-details-table .strikethrough {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.9em;
+}
+
+.sale-details-table .adjusted-price {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 0.9em;
 } 
