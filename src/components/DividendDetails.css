@@ -1,0 +1,46 @@
+.dividend-details {
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.dividend-details h4 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.1em;
+}
+
+.dividend-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dividend-table th,
+.dividend-table td {
+  padding: 12px;
+  text-align: right;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.dividend-table th:first-child,
+.dividend-table td:first-child {
+  text-align: left;
+}
+
+.dividend-table th {
+  background-color: #4a90e2;
+  color: white;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.dividend-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dividend-table tr:hover {
+  background-color: #f5f5f5;
+} 

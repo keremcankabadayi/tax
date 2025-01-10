@@ -31,6 +31,19 @@ const getIndexForDate = (date, indexData) => {
   return indexValue ? Number(indexValue.replace(',', '.')) : null;
 };
 
+// Tarihi Türkçe formata çevir
+const formatDateTR = (dateStr) => {
+  const date = new Date(dateStr);
+  const day = date.getDate();
+  const monthNames = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+  ];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+};
+
 const SaleDetails = ({ trade, trades, indexData }) => {
   // Satış işlemi için kullanılan alışları bul
   const getFIFODetails = () => {
@@ -51,7 +64,8 @@ const SaleDetails = ({ trade, trades, indexData }) => {
         stockLedger.push({
           ...buyTrade,
           quantity: Number(buyTrade.quantity),
-          remainingQuantity: Number(buyTrade.quantity)
+          remainingQuantity: Number(buyTrade.quantity),
+          usedQuantity: 0
         });
       });
 
@@ -59,6 +73,7 @@ const SaleDetails = ({ trade, trades, indexData }) => {
     while (remainingSell > 0 && stockLedger.length > 0) {
       const oldestBuy = stockLedger[0];
       const sellQuantity = Math.min(remainingSell, oldestBuy.remainingQuantity);
+      oldestBuy.usedQuantity += sellQuantity;
       
       // Birim fiyatlar
       const buyPriceUSD = Number(oldestBuy.price);
@@ -106,7 +121,7 @@ const SaleDetails = ({ trade, trades, indexData }) => {
       
       details.push({
         date: oldestBuy.date,
-        quantity: sellQuantity,
+        quantity: oldestBuy.usedQuantity,
         totalQuantity,
         buyPriceUSD,
         sellPriceUSD,
@@ -148,7 +163,7 @@ const SaleDetails = ({ trade, trades, indexData }) => {
         <thead>
           <tr>
             <th>Alış Tarihi</th>
-            <th>Kullanılan / Toplam Adet</th>
+            <th>Toplam / Satılan / Kalan Adet</th>
             <th>Alış $ / ₺</th>
             <th>Satış $ / ₺</th>
             <th>Kâr/Zarar ($)</th>
@@ -159,8 +174,10 @@ const SaleDetails = ({ trade, trades, indexData }) => {
         <tbody>
           {fifoDetails.map((detail, index) => (
             <tr key={index}>
-              <td>{detail.date}</td>
-              <td>{formatNumber(detail.quantity)} / {formatNumber(detail.totalQuantity)}</td>
+              <td>{formatDateTR(detail.date)}</td>
+              <td>
+                {formatNumber(detail.totalQuantity)} / {formatNumber(detail.quantity)} / {formatNumber(detail.totalQuantity - detail.quantity)}
+              </td>
               <td>
                 {detail.indexChange >= 10 ? (
                   <>

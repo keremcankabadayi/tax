@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import TradeTable from './components/TradeTable';
+import Navbar from './components/Navbar';
 
 function App() {
+  const [temettuIstisnasi, setTemettuIstisnasi] = useState(0);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>ABD Hisse/ETF Vergi Takip Sistemi</h1>
-      </header>
+      <Navbar 
+        temettuIstisnasi={temettuIstisnasi}
+        setTemettuIstisnasi={setTemettuIstisnasi}
+      />
       <main>
         <TradeTable />
       </main>
