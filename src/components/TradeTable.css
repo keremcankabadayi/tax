@@ -1,23 +1,87 @@
+.table-actions {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  margin: 0;
+  background-color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.action-button i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.add-trade-button {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.add-trade-button:hover {
+  background-color: #27ae60;
+}
+
+.reset-cache-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.reset-cache-button:hover {
+  background-color: #c0392b;
+}
+
+.table-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.table-responsive {
+  margin: 0;
+  padding: 15px;
+}
+
 .trade-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   background-color: white;
   color: #333;
-  border: 1px solid #dee2e6;
+  border: none;
 }
 
 .trade-table th,
 .trade-table td {
   padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid #eee;
 }
 
 .trade-table thead th {
   font-weight: 600;
   text-align: left;
-  background-color: #f8f9fa;
-  color: #495057;
+  background-color: white;
+  color: #2c3e50;
+  border-bottom: 2px solid #eee;
+}
+
+.trade-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .trade-table tbody tr:hover {
@@ -74,15 +138,17 @@
 
 .summary-table th,
 .summary-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #dee2e6;
-  text-align: left;
+  padding: 12px 15px;
+  text-align: right;
+  border-bottom: 1px solid #e9ecef;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 .summary-table th {
+  background-color: #4a90e2;
+  color: white;
   font-weight: 600;
-  color: #495057;
-  background-color: #f8f9fa;
 }
 
 .summary-table tr:last-child td {
@@ -386,6 +452,8 @@ select.table-input {
   padding: 12px 15px;
   text-align: right;
   border-bottom: 1px solid #e9ecef;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 .summary-table th:first-child,
@@ -396,24 +464,27 @@ select.table-input {
 .summary-table th {
   background-color: #4a90e2;
   color: white;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .summary-table .profit {
-  color: #28a745;
+  color: #27ae60;
+  font-weight: 600;
 }
 
 .summary-table .loss {
-  color: #dc3545;
+  color: #c0392b;
+  font-weight: 600;
 }
 
 .summary-table .total-row {
-  font-weight: bold;
+  font-weight: 700;
   background-color: #f8f9fa;
 }
 
 .summary-table .total-row td {
   border-top: 2px solid #dee2e6;
+  color: #2c3e50;
 }
 
 .summary-row {
@@ -448,6 +519,8 @@ select.table-input {
   padding: 8px 12px;
   text-align: right;
   border: none;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 .dividend-details-table th:first-child,
@@ -457,8 +530,8 @@ select.table-input {
 
 .dividend-details-table th {
   background-color: #e9ecef;
-  color: #495057;
-  font-weight: 500;
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .dividend-details-table tr:hover {
@@ -485,6 +558,60 @@ select.table-input {
 .summary-table td:first-child {
   position: relative;
   padding-left: 30px !important;
+}
+
+.summary-container {
+  display: flex;
+  gap: 2rem;
+  margin: 1rem 0;
+  align-items: flex-start;
+}
+
+.summary-section {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tax-calculation {
+  flex: 1;
+  margin: 0 !important;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .summary-container {
@@ -593,4 +720,99 @@ select.table-input {
 
 .right-column::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+.table-actions {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  margin: 20px 0;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hamburger-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.hamburger-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #2c3e50;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.hamburger-button:hover {
+  background-color: #f5f5f5;
+  transform: scale(1.05);
+}
+
+.hamburger-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 220px;
+  animation: fadeIn 0.2s ease;
+  border: 1px solid #eee;
+}
+
+.hamburger-dropdown button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.hamburger-dropdown button:hover {
+  background-color: #f8f9fa;
+  padding-left: 20px;
+}
+
+.hamburger-dropdown button:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.hamburger-dropdown button:last-child {
+  border-radius: 0 0 8px 8px;
+  border-top: 1px solid #eee;
+}
+
+.hamburger-dropdown button.add-trade {
+  color: #2ecc71;
+  font-weight: 500;
+}
+
+.hamburger-dropdown button.reset-cache {
+  color: #e74c3c;
+  font-weight: 500;
+}
+
+.hamburger-dropdown button i {
+  margin-right: 10px;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.table-responsive {
+  margin-top: 0;
 }
