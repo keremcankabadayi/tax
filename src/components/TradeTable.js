@@ -3,6 +3,8 @@ import './TradeTable.css';
 import Notification from './Notification';
 import SaleDetails from './SaleDetails';
 import DividendDetails from './DividendDetails';
+import TaxCalculation from './TaxCalculation';
+import { fetchFromPantry } from '../utils/api';
 
 const STORAGE_KEY = 'tax_trades_data';
 const PANTRY_ID = '60e512d0-f495-4a56-b640-e0e30632d99f';
@@ -50,7 +52,7 @@ const getIndexForDate = (date, indexData) => {
   return indexValue ? Number(indexValue.replace(',', '.')) : null;
 };
 
-const TradeTable = () => {
+const TradeTable = ({ temettuIstisnasi }) => {
   // localStorage'dan verileri al veya boş array kullan
   const initialTrades = () => {
     const savedTrades = localStorage.getItem(STORAGE_KEY);
@@ -60,11 +62,11 @@ const TradeTable = () => {
   const [trades, setTrades] = useState(initialTrades);
   const [isAdding, setIsAdding] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [profitLoss, setProfitLoss] = useState({});
   const [remainingShares, setRemainingShares] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [indexData, setIndexData] = useState([]);
   const [exchangeRates, setExchangeRates] = useState({});
+  const [profitLossTL, setProfitLossTL] = useState({});
   const [newTrade, setNewTrade] = useState({
     symbol: '',
     type: 'Alış',
@@ -74,17 +76,23 @@ const TradeTable = () => {
   });
   const [openRows, setOpenRows] = useState([]);
   const menuRefs = useRef({});
+  const [isLoading, setIsLoading] = useState(true);
 
   // Exchange rate verilerini çek
   useEffect(() => {
-    const fetchExchangeRates = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/usdtry`);
-        const data = await response.json();
+        setIsLoading(true);
         
-        // key alanına göre sırala (en yeni tarih üstte)
-        const sortedData = Object.entries(data)
-          .filter(([key]) => key !== 'key') // 'key' alanını filtrele
+        // Sırayla verileri çek
+        const [exchangeRatesData, indexData] = await Promise.all([
+          fetchFromPantry('usdtry'),
+          fetchFromPantry('yiufe')
+        ]);
+        
+        // Exchange rates işleme
+        const sortedData = Object.entries(exchangeRatesData)
+          .filter(([key]) => key !== 'key')
           .sort(([dateA], [dateB]) => {
             const [dayA, monthA, yearA] = dateA.split('.');
             const [dayB, monthB, yearB] = dateB.split('.');
@@ -96,13 +104,20 @@ const TradeTable = () => {
           }, {});
 
         setExchangeRates(sortedData);
+        
+        // Index data işleme
+        if (indexData.veriler) {
+          setIndexData(indexData.veriler);
+        }
       } catch (error) {
-        console.error('Exchange rate data fetch error:', error);
-        addNotification('Döviz kuru verileri alınamadı.', 'error');
+        console.error('Veri çekme hatası:', error);
+        addNotification('Veriler alınamadı. Lütfen sayfayı yenileyin.', 'error');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchExchangeRates();
+    fetchData();
   }, []);
 
   // İşlem tarihine göre döviz kurunun bulunması
@@ -150,62 +165,77 @@ const TradeTable = () => {
   useEffect(() => {
     const calculateFIFO = () => {
       const stockLedger = {};
-      const profitLossCalc = {};
       const remaining = {};
+      const profitLossCalc = {};
+      const symbols = [...new Set(trades.map(trade => trade.symbol))];
 
-      // İşlemleri tarihe göre sırala
-      const sortedTrades = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Her sembol için kâr/zarar hesapla
+      symbols.forEach(symbol => {
+        const trades_by_symbol = trades.filter(trade => trade.symbol === symbol);
+        let totalProfitTL = 0;
+        
+        const stockLedger = [];
+        trades_by_symbol.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(trade => {
+          if (trade.type === 'Alış') {
+            stockLedger.push({
+              quantity: Number(trade.quantity),
+              price: Number(trade.price),
+              exchangeRate: Number(trade.exchangeRate),
+              date: trade.date
+            });
+            if (!remaining[symbol]) remaining[symbol] = 0;
+            remaining[symbol] += Number(trade.quantity);
+          } else if (trade.type === 'Satış') {
+            let remainingSell = Number(trade.quantity);
+            const sellPrice = Number(trade.price);
+            const sellExchangeRate = Number(trade.exchangeRate);
+            const saleDate = trade.date;
+            const saleIndex = getIndexForDate(saleDate, indexData);
 
-      sortedTrades.forEach(trade => {
-        const symbol = trade.symbol;
-        if (!stockLedger[symbol]) {
-          stockLedger[symbol] = [];
-          profitLossCalc[symbol] = 0;
-          remaining[symbol] = 0;
-        }
+            while (remainingSell > 0 && stockLedger.length > 0) {
+              const oldestBuy = stockLedger[0];
+              const sellQuantity = Math.min(remainingSell, oldestBuy.quantity);
+              
+              // TL cinsinden kâr/zarar hesapla
+              const buyPriceTL = oldestBuy.price * oldestBuy.exchangeRate;
+              const sellPriceTL = sellPrice * sellExchangeRate;
 
-        if (trade.type === 'Alış') {
-          // Alış işlemi: Hisseleri stoka ekle
-          stockLedger[symbol].push({
-            quantity: Number(trade.quantity),
-            price: Number(trade.price),
-            date: trade.date
-          });
-          remaining[symbol] += Number(trade.quantity);
-        } else if (trade.type === 'Satış') {
-          // Satış işlemi: FIFO kuralına göre hesapla
-          let remainingSell = Number(trade.quantity);
-          const sellPrice = Number(trade.price);
+              // Endeks değişimini kontrol et
+              const buyIndex = getIndexForDate(oldestBuy.date, indexData);
+              let adjustedBuyPriceTL = buyPriceTL;
 
-          while (remainingSell > 0 && stockLedger[symbol].length > 0) {
-            const oldestBuy = stockLedger[symbol][0];
-            const sellQuantity = Math.min(remainingSell, oldestBuy.quantity);
-            
-            // Kâr/zarar hesapla
-            const profit = (sellPrice - oldestBuy.price) * sellQuantity;
-            profitLossCalc[symbol] += profit;
+              if (buyIndex && saleIndex) {
+                const indexChange = ((saleIndex - buyIndex) / buyIndex) * 100;
+                if (indexChange >= 10) {
+                  adjustedBuyPriceTL = buyPriceTL * (1 + (indexChange / 100));
+                }
+              }
 
-            // Kalan hisseleri güncelle
-            remaining[symbol] -= sellQuantity;
-            
-            if (sellQuantity === oldestBuy.quantity) {
-              stockLedger[symbol].shift(); // Tüm hisseler satıldı
-            } else {
-              oldestBuy.quantity -= sellQuantity; // Kısmi satış
+              const profitTL = (sellPriceTL - adjustedBuyPriceTL) * sellQuantity;
+              totalProfitTL += profitTL;
+
+              if (sellQuantity === oldestBuy.quantity) {
+                stockLedger.shift();
+              } else {
+                oldestBuy.quantity -= sellQuantity;
+              }
+              
+              remainingSell -= sellQuantity;
+              if (!remaining[symbol]) remaining[symbol] = 0;
+              remaining[symbol] -= sellQuantity;
             }
-            
-            remainingSell -= sellQuantity;
           }
-        }
-        // Temettü işlemleri için hiçbir şey yapma (hisse adedini etkilemez)
+        });
+
+        profitLossCalc[symbol] = totalProfitTL;
       });
 
-      setProfitLoss(profitLossCalc);
       setRemainingShares(remaining);
+      setProfitLossTL(profitLossCalc);
     };
 
     calculateFIFO();
-  }, [trades]);
+  }, [trades, indexData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -384,13 +414,11 @@ const TradeTable = () => {
   const renderSummary = () => {
     const symbols = [...new Set(trades.map(trade => trade.symbol))];
     
-    // TL cinsinden kâr/zarar ve temettü hesapla
-    const profitLossTL = {};
+    // TL cinsinden temettü hesapla
     const dividendTotals = {};
     
     symbols.forEach(symbol => {
       const trades_by_symbol = trades.filter(trade => trade.symbol === symbol);
-      let totalProfitTL = 0;
       let totalDividendUSD = 0;
       let totalDividendTL = 0;
       
@@ -405,57 +433,6 @@ const TradeTable = () => {
         usd: totalDividendUSD,
         tl: totalDividendTL
       };
-
-      const stockLedger = [];
-      trades_by_symbol.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(trade => {
-        if (trade.type === 'Alış') {
-          stockLedger.push({
-            quantity: Number(trade.quantity),
-            price: Number(trade.price),
-            exchangeRate: Number(trade.exchangeRate),
-            date: trade.date
-          });
-        } else if (trade.type === 'Satış') {
-          let remainingSell = Number(trade.quantity);
-          const sellPrice = Number(trade.price);
-          const sellExchangeRate = Number(trade.exchangeRate);
-          const saleDate = trade.date;
-          const saleIndex = getIndexForDate(saleDate, indexData);
-
-          while (remainingSell > 0 && stockLedger.length > 0) {
-            const oldestBuy = stockLedger[0];
-            const sellQuantity = Math.min(remainingSell, oldestBuy.quantity);
-            
-            // TL cinsinden kâr/zarar hesapla
-            const buyPriceTL = oldestBuy.price * oldestBuy.exchangeRate;
-            const sellPriceTL = sellPrice * sellExchangeRate;
-
-            // Endeks değişimini kontrol et
-            const buyIndex = getIndexForDate(oldestBuy.date, indexData);
-            let adjustedBuyPriceTL = buyPriceTL;
-
-            if (buyIndex && saleIndex) {
-              const indexChange = ((saleIndex - buyIndex) / buyIndex) * 100;
-              if (indexChange >= 10) {
-                adjustedBuyPriceTL = buyPriceTL * (1 + (indexChange / 100));
-              }
-            }
-
-            const profitTL = (sellPriceTL - adjustedBuyPriceTL) * sellQuantity;
-            totalProfitTL += profitTL;
-
-            if (sellQuantity === oldestBuy.quantity) {
-              stockLedger.shift();
-            } else {
-              oldestBuy.quantity -= sellQuantity;
-            }
-            
-            remainingSell -= sellQuantity;
-          }
-        }
-      });
-
-      profitLossTL[symbol] = totalProfitTL;
     });
 
     // Toplam kâr/zarar ve temettü
@@ -568,23 +545,6 @@ const TradeTable = () => {
     });
   };
 
-  // PANTRY API'den veri çek
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/yiufe`);
-        const data = await response.json();
-        if (data.veriler) {
-          setIndexData(data.veriler);
-        }
-      } catch (error) {
-        console.error('PANTRY API Error:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Açık olan menüleri kontrol et
@@ -603,238 +563,255 @@ const TradeTable = () => {
 
   return (
     <div className="trade-table-container">
-      <div className="notification-container">
-        {notifications.map(notification => (
-          <Notification
-            key={notification.id}
-            message={notification.message}
-            type={notification.type}
-            onClose={() => removeNotification(notification.id)}
-          />
-        ))}
-      </div>
-      
-      <h2>Hisse/ETF İşlem Takibi</h2>
-      {trades.length > 0 && renderSummary()}
-      <div className="trade-table-wrapper">
-        <table className="trade-table">
-          <thead>
-            <tr>
-              <th>İşlem Tarihi</th>
-              <th>İşlem Tipi</th>
-              <th>Sembol</th>
-              <th>Adet</th>
-              <th>Fiyat ($)</th>
-              <th>Fiyat (₺)</th>
-              <th>İşlemler</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trades
-              .sort((a, b) => new Date(b.date) - new Date(a.date))
-              .map((trade, index) => (
-                <>
-                  <tr 
-                    key={`row-${index}`}
-                    className={`trade-row ${openRows.includes(index) ? 'expanded' : ''}`} 
-                    onClick={() => trade.type === 'Satış' && handleRowClick(index)}
-                  >
-                    <td>
-                      {trade.type === 'Satış' && (
-                        <span className={`collapse-icon ${openRows.includes(index) ? 'open' : ''}`}>▶</span>
-                      )}
-                      {formatDateTR(trade.date)}
-                    </td>
-                    <td>{trade.type}</td>
-                    <td>{trade.symbol}</td>
-                    <td>
-                      {trade.type === 'Temettü' ? 
-                        formatNumber(remainingShares[trade.symbol] || 0) :
-                        formatNumber(trade.quantity)
-                      }
-                    </td>
-                    <td>
-                      {formatNumber(Number(trade.price).toFixed(2))}
-                    </td>
-                    <td>
-                      {formatNumber(Number(trade.priceTL).toFixed(2))}
-                      {' '}
-                      <span className="exchange-rate">
-                        (1$ = {Number(trade.exchangeRate).toFixed(2)} ₺)
-                      </span>
-                    </td>
-                    <td>
-                      <div 
-                        className="actions-menu"
-                        ref={el => menuRefs.current[`menu-${index}`] = el}
+      {isLoading ? (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <div className="loading-text">Veriler yükleniyor...</div>
+        </div>
+      ) : (
+        <>
+          <div className="notification-container">
+            {notifications.map(notification => (
+              <Notification
+                key={notification.id}
+                message={notification.message}
+                type={notification.type}
+                onClose={() => removeNotification(notification.id)}
+              />
+            ))}
+          </div>
+          
+          {trades.length > 0 && (
+            <div className="summary-container">
+              {renderSummary()}
+              <TaxCalculation 
+                trades={trades}
+                profitLoss={profitLossTL}
+                temettuIstisnasi={temettuIstisnasi}
+              />
+            </div>
+          )}
+          <div className="trade-table-wrapper">
+            <table className="trade-table">
+              <thead>
+                <tr>
+                  <th>İşlem Tarihi</th>
+                  <th>İşlem Tipi</th>
+                  <th>Sembol</th>
+                  <th>Adet</th>
+                  <th>Fiyat ($)</th>
+                  <th>Fiyat (₺)</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trades
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map((trade, index) => (
+                    <>
+                      <tr 
+                        key={`row-${index}`}
+                        className={`trade-row ${openRows.includes(index) ? 'expanded' : ''}`} 
+                        onClick={() => trade.type === 'Satış' && handleRowClick(index)}
                       >
-                        <button 
-                          className="menu-toggle" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const menuKey = `menu-${index}`;
-                            const currentOpen = openRows.includes(menuKey);
-                            setOpenRows(prev => 
-                              currentOpen 
-                                ? prev.filter(i => i !== menuKey)
-                                : [...prev, menuKey]
-                            );
-                          }}
-                        >
-                          ⋮
-                        </button>
-                        {openRows.includes(`menu-${index}`) && (
-                          <div className="menu-items">
-                            <button onClick={(e) => { e.stopPropagation(); handleEdit(index); }}>
-                              Düzenle
+                        <td>
+                          {trade.type === 'Satış' && (
+                            <span className={`collapse-icon ${openRows.includes(index) ? 'open' : ''}`}>▶</span>
+                          )}
+                          {formatDateTR(trade.date)}
+                        </td>
+                        <td>{trade.type}</td>
+                        <td>{trade.symbol}</td>
+                        <td>
+                          {trade.type === 'Temettü' ? 
+                            formatNumber(remainingShares[trade.symbol] || 0) :
+                            formatNumber(trade.quantity)
+                          }
+                        </td>
+                        <td>
+                          {formatNumber(Number(trade.price).toFixed(2))}
+                        </td>
+                        <td>
+                          {formatNumber(Number(trade.priceTL).toFixed(2))}
+                          {' '}
+                          <span className="exchange-rate">
+                            (1$ = {Number(trade.exchangeRate).toFixed(2)} ₺)
+                          </span>
+                        </td>
+                        <td>
+                          <div 
+                            className="actions-menu"
+                            ref={el => menuRefs.current[`menu-${index}`] = el}
+                          >
+                            <button 
+                              className="menu-toggle" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const menuKey = `menu-${index}`;
+                                const currentOpen = openRows.includes(menuKey);
+                                setOpenRows(prev => 
+                                  currentOpen 
+                                    ? prev.filter(i => i !== menuKey)
+                                    : [...prev, menuKey]
+                                );
+                              }}
+                            >
+                              ⋮
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }}>
-                              Sil
-                            </button>
+                            {openRows.includes(`menu-${index}`) && (
+                              <div className="menu-items">
+                                <button onClick={(e) => { e.stopPropagation(); handleEdit(index); }}>
+                                  Düzenle
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }}>
+                                  Sil
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        </td>
+                      </tr>
+                      {openRows.includes(index) && trade.type === 'Satış' && (
+                        <tr key={`details-${index}`} className="details-row">
+                          <td colSpan="7">
+                            <SaleDetails 
+                              trade={trade} 
+                              trades={trades} 
+                              indexData={indexData}
+                              getIndexForDate={getIndexForDate}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  ))}
+                {isAdding && (
+                  <tr className="adding-row">
+                    <td>
+                      <input
+                        type="date"
+                        name="date"
+                        value={newTrade.date}
+                        onChange={handleInputChange}
+                        max={today}
+                        className="table-input"
+                      />
+                    </td>
+                    <td>
+                      <select
+                        name="type"
+                        value={newTrade.type}
+                        onChange={handleInputChange}
+                        className="table-input"
+                      >
+                        <option value="Alış">Alış</option>
+                        <option value="Satış">Satış</option>
+                        <option value="Temettü">Temettü</option>
+                      </select>
+                    </td>
+                    <td>
+                      {newTrade.type === 'Alış' ? (
+                        <input
+                          type="text"
+                          name="symbol"
+                          value={newTrade.symbol}
+                          onChange={handleInputChange}
+                          placeholder="AAPL"
+                          className="table-input"
+                        />
+                      ) : (
+                        <select
+                          name="symbol"
+                          value={newTrade.symbol}
+                          onChange={handleInputChange}
+                          className="table-input"
+                        >
+                          <option value="">Sembol Seçin</option>
+                          {getAvailableSymbols().map(symbol => (
+                            <option key={symbol} value={symbol}>
+                              {symbol} ({remainingShares[symbol] || 0} adet)
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    <td>
+                      {newTrade.type === 'Temettü' ? (
+                        <input
+                          type="number"
+                          name="quantity"
+                          value={remainingShares[newTrade.symbol] || ''}
+                          disabled
+                          className="table-input"
+                        />
+                      ) : (
+                        <input
+                          type="number"
+                          name="quantity"
+                          value={newTrade.quantity}
+                          onChange={handleInputChange}
+                          placeholder="100"
+                          className="table-input"
+                        />
+                      )}
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        name="price"
+                        value={newTrade.price}
+                        onChange={handleInputChange}
+                        placeholder={
+                          newTrade.type === 'Alış' ? 'Alış Fiyatı' : 
+                          newTrade.type === 'Satış' ? 'Satış Fiyatı' :
+                          'Toplam Temettü Tutarı ($)'
+                        }
+                        className="table-input"
+                      />
+                    </td>
+                    <td>
+                      {newTrade.price && (newTrade.quantity || newTrade.type === 'Temettü') ? (
+                        <>
+                          {formatNumber((Number(newTrade.price) * (getExchangeRateForDate(newTrade.date) || 0) * (newTrade.type === 'Temettü' ? 1 : Number(newTrade.quantity))).toFixed(2))}
+                          {' '}
+                          <span className="exchange-rate">
+                            (1$ = {(getExchangeRateForDate(newTrade.date) || 0).toFixed(2)} ₺)
+                          </span>
+                        </>
+                      ) : '-'}
+                    </td>
+                    <td>
+                      <button className="save-btn" onClick={handleAddTrade}>
+                        {editingIndex !== null ? 'Güncelle' : 'Kaydet'}
+                      </button>
+                      <button 
+                        className="cancel-btn" 
+                        onClick={() => {
+                          setIsAdding(false);
+                          setEditingIndex(null);
+                          setNewTrade({
+                            symbol: '',
+                            type: 'Alış',
+                            quantity: '',
+                            price: '',
+                            date: new Date().toISOString().split('T')[0]
+                          });
+                        }}
+                      >
+                        İptal
+                      </button>
                     </td>
                   </tr>
-                  {openRows.includes(index) && trade.type === 'Satış' && (
-                    <tr key={`details-${index}`} className="details-row">
-                      <td colSpan="7">
-                        <SaleDetails 
-                          trade={trade} 
-                          trades={trades} 
-                          indexData={indexData}
-                          getIndexForDate={getIndexForDate}
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </>
-              ))}
-            {isAdding && (
-              <tr className="adding-row">
-                <td>
-                  <input
-                    type="date"
-                    name="date"
-                    value={newTrade.date}
-                    onChange={handleInputChange}
-                    max={today}
-                    className="table-input"
-                  />
-                </td>
-                <td>
-                  <select
-                    name="type"
-                    value={newTrade.type}
-                    onChange={handleInputChange}
-                    className="table-input"
-                  >
-                    <option value="Alış">Alış</option>
-                    <option value="Satış">Satış</option>
-                    <option value="Temettü">Temettü</option>
-                  </select>
-                </td>
-                <td>
-                  {newTrade.type === 'Alış' ? (
-                    <input
-                      type="text"
-                      name="symbol"
-                      value={newTrade.symbol}
-                      onChange={handleInputChange}
-                      placeholder="AAPL"
-                      className="table-input"
-                    />
-                  ) : (
-                    <select
-                      name="symbol"
-                      value={newTrade.symbol}
-                      onChange={handleInputChange}
-                      className="table-input"
-                    >
-                      <option value="">Sembol Seçin</option>
-                      {getAvailableSymbols().map(symbol => (
-                        <option key={symbol} value={symbol}>
-                          {symbol} ({remainingShares[symbol] || 0} adet)
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </td>
-                <td>
-                  {newTrade.type === 'Temettü' ? (
-                    <input
-                      type="number"
-                      name="quantity"
-                      value={remainingShares[newTrade.symbol] || ''}
-                      disabled
-                      className="table-input"
-                    />
-                  ) : (
-                    <input
-                      type="number"
-                      name="quantity"
-                      value={newTrade.quantity}
-                      onChange={handleInputChange}
-                      placeholder="100"
-                      className="table-input"
-                    />
-                  )}
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    name="price"
-                    value={newTrade.price}
-                    onChange={handleInputChange}
-                    placeholder={
-                      newTrade.type === 'Alış' ? 'Alış Fiyatı' : 
-                      newTrade.type === 'Satış' ? 'Satış Fiyatı' :
-                      'Toplam Temettü Tutarı ($)'
-                    }
-                    className="table-input"
-                  />
-                </td>
-                <td>
-                  {newTrade.price && (newTrade.quantity || newTrade.type === 'Temettü') ? (
-                    <>
-                      {formatNumber((Number(newTrade.price) * (getExchangeRateForDate(newTrade.date) || 0) * (newTrade.type === 'Temettü' ? 1 : Number(newTrade.quantity))).toFixed(2))}
-                      {' '}
-                      <span className="exchange-rate">
-                        (1$ = {(getExchangeRateForDate(newTrade.date) || 0).toFixed(2)} ₺)
-                      </span>
-                    </>
-                  ) : '-'}
-                </td>
-                <td>
-                  <button className="save-btn" onClick={handleAddTrade}>
-                    {editingIndex !== null ? 'Güncelle' : 'Kaydet'}
-                  </button>
-                  <button 
-                    className="cancel-btn" 
-                    onClick={() => {
-                      setIsAdding(false);
-                      setEditingIndex(null);
-                      setNewTrade({
-                        symbol: '',
-                        type: 'Alış',
-                        quantity: '',
-                        price: '',
-                        date: new Date().toISOString().split('T')[0]
-                      });
-                    }}
-                  >
-                    İptal
-                  </button>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      {!isAdding && (
-        <button className="add-trade-btn" onClick={() => setIsAdding(true)}>
-          Yeni İşlem Ekle
-        </button>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {!isAdding && (
+            <button className="add-trade-btn" onClick={() => setIsAdding(true)}>
+              Yeni İşlem Ekle
+            </button>
+          )}
+        </>
       )}
     </div>
   );
