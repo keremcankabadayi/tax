@@ -77,18 +77,24 @@ const TradeTable = ({ temettuIstisnasi }) => {
   const [openRows, setOpenRows] = useState([]);
   const menuRefs = useRef({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingExchangeRates, setIsLoadingExchangeRates] = useState(true);
+  const [isLoadingIndexData, setIsLoadingIndexData] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [retryDelay, setRetryDelay] = useState(0);
 
   // Exchange rate verilerini çek
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setIsLoadingExchangeRates(true);
+        setIsLoadingIndexData(true);
         
-        // Sırayla verileri çek
-        const [exchangeRatesData, indexData] = await Promise.all([
-          fetchFromPantry('usdtry'),
-          fetchFromPantry('yiufe')
-        ]);
+        // Döviz kurlarını çek
+        const exchangeRatesData = await fetchFromPantry('usdtry', 0, (count, delay) => {
+          setRetryCount(count);
+          setRetryDelay(delay);
+        });
         
         // Exchange rates işleme
         const sortedData = Object.entries(exchangeRatesData)
@@ -104,11 +110,21 @@ const TradeTable = ({ temettuIstisnasi }) => {
           }, {});
 
         setExchangeRates(sortedData);
+        setIsLoadingExchangeRates(false);
+        setRetryCount(0);
+        
+        // Endeks verilerini çek
+        const indexData = await fetchFromPantry('yiufe', 0, (count, delay) => {
+          setRetryCount(count);
+          setRetryDelay(delay);
+        });
         
         // Index data işleme
         if (indexData.veriler) {
           setIndexData(indexData.veriler);
         }
+        setIsLoadingIndexData(false);
+        setRetryCount(0);
       } catch (error) {
         console.error('Veri çekme hatası:', error);
         addNotification('Veriler alınamadı. Lütfen sayfayı yenileyin.', 'error');
@@ -566,7 +582,13 @@ const TradeTable = ({ temettuIstisnasi }) => {
       {isLoading ? (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
-          <div className="loading-text">Veriler yükleniyor...</div>
+          <div className="loading-text">
+            {retryCount > 0 ? 
+              `Rate limit aşıldı. ${retryCount}. deneme yapılıyor... (${(retryDelay / 1000).toFixed(1)} saniye bekleniyor)` :
+              isLoadingExchangeRates ? 'Döviz kurları yükleniyor...' : 
+              isLoadingIndexData ? 'Endeks verileri yükleniyor...' : 
+              'Veriler yükleniyor...'}
+          </div>
         </div>
       ) : (
         <>
