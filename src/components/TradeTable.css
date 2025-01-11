@@ -547,3 +547,50 @@ select.table-input {
   margin-bottom: 2rem;
   flex-wrap: wrap;
 }
+
+.trade-table-container {
+  padding: 20px;
+  position: relative;
+  height: 100%;
+}
+
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 20px;
+  align-items: start;
+  min-height: calc(100vh - 100px);
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.right-column {
+  position: sticky;
+  top: 85px;
+  align-self: start;
+  max-height: calc(100vh - 105px);
+  overflow-y: auto;
+}
+
+.right-column::-webkit-scrollbar {
+  width: 8px;
+}
+
+.right-column::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.right-column::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.right-column::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

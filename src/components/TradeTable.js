@@ -440,8 +440,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
       
       trades_by_symbol.forEach(trade => {
         if (trade.type === 'Temettü') {
-          totalDividendUSD += Number(trade.price);
-          totalDividendTL += Number(trade.priceTL);
+          totalDividendUSD += Number(trade.price) || 0;
+          totalDividendTL += Number(trade.priceTL) || 0;
         }
       });
       
@@ -452,9 +452,9 @@ const TradeTable = ({ temettuIstisnasi }) => {
     });
 
     // Toplam kâr/zarar ve temettü
-    const totalProfitLossTL = Object.values(profitLossTL).reduce((sum, value) => sum + value, 0);
-    const totalDividendUSD = Object.values(dividendTotals).reduce((sum, value) => sum + value.usd, 0);
-    const totalDividendTL = Object.values(dividendTotals).reduce((sum, value) => sum + value.tl, 0);
+    const totalProfitLossTL = Object.values(profitLossTL).reduce((sum, value) => sum + (value || 0), 0);
+    const totalDividendUSD = Object.values(dividendTotals).reduce((sum, value) => sum + (value?.usd || 0), 0);
+    const totalDividendTL = Object.values(dividendTotals).reduce((sum, value) => sum + (value?.tl || 0), 0);
 
     return (
       <div className="summary-section">
@@ -497,11 +497,11 @@ const TradeTable = ({ temettuIstisnasi }) => {
                     {symbol}
                   </td>
                   <td>{formatNumber(remainingShares[symbol] || 0)}</td>
-                  <td className={profitLossTL[symbol] >= 0 ? 'profit' : 'loss'}>
-                    {formatNumber(profitLossTL[symbol].toFixed(2))}
+                  <td className={(profitLossTL[symbol] || 0) >= 0 ? 'profit' : 'loss'}>
+                    {formatNumber((profitLossTL[symbol] || 0).toFixed(2))}
                   </td>
-                  <td>{formatNumber(dividendTotals[symbol].usd.toFixed(2))}</td>
-                  <td>{formatNumber(dividendTotals[symbol].tl.toFixed(2))}</td>
+                  <td>{formatNumber((dividendTotals[symbol]?.usd || 0).toFixed(2))}</td>
+                  <td>{formatNumber((dividendTotals[symbol]?.tl || 0).toFixed(2))}</td>
                 </tr>
                 {openRows.includes(`summary-${symbol}`) && (
                   <tr className="dividend-details-row">
@@ -523,10 +523,10 @@ const TradeTable = ({ temettuIstisnasi }) => {
                             .map((dividend, index) => (
                               <tr key={index}>
                                 <td>{formatDateTR(dividend.date)}</td>
-                                <td>{formatNumber(dividend.quantity)}</td>
-                                <td>{formatNumber((dividend.price / dividend.quantity).toFixed(4))}</td>
-                                <td>{formatNumber(dividend.price.toFixed(2))}</td>
-                                <td>{formatNumber(dividend.priceTL.toFixed(2))}</td>
+                                <td>{formatNumber(dividend.quantity || 0)}</td>
+                                <td>{formatNumber(((dividend.price || 0) / (dividend.quantity || 1)).toFixed(4))}</td>
+                                <td>{formatNumber((dividend.price || 0).toFixed(2))}</td>
+                                <td>{formatNumber((dividend.priceTL || 0).toFixed(2))}</td>
                               </tr>
                             ))}
                         </tbody>
@@ -603,236 +603,247 @@ const TradeTable = ({ temettuIstisnasi }) => {
             ))}
           </div>
           
-          {trades.length > 0 && (
-            <div className="summary-container">
-              {renderSummary()}
-              <TaxCalculation 
-                trades={trades}
-                profitLoss={profitLossTL}
-                temettuIstisnasi={temettuIstisnasi}
-              />
-            </div>
-          )}
-          <div className="trade-table-wrapper">
-            <table className="trade-table">
-              <thead>
-                <tr>
-                  <th>İşlem Tarihi</th>
-                  <th>İşlem Tipi</th>
-                  <th>Sembol</th>
-                  <th>Adet</th>
-                  <th>Fiyat ($)</th>
-                  <th>Fiyat (₺)</th>
-                  <th>İşlemler</th>
-                </tr>
-              </thead>
-              <tbody>
-                {trades
-                  .sort((a, b) => new Date(b.date) - new Date(a.date))
-                  .map((trade, index) => (
-                    <>
-                      <tr 
-                        key={`row-${index}`}
-                        className={`trade-row ${openRows.includes(index) ? 'expanded' : ''}`} 
-                        onClick={() => trade.type === 'Satış' && handleRowClick(index)}
-                      >
-                        <td>
-                          {trade.type === 'Satış' && (
-                            <span className={`collapse-icon ${openRows.includes(index) ? 'open' : ''}`}>▶</span>
-                          )}
-                          {formatDateTR(trade.date)}
-                        </td>
-                        <td>{trade.type}</td>
-                        <td>{trade.symbol}</td>
-                        <td>
-                          {trade.type === 'Temettü' ? 
-                            formatNumber(remainingShares[trade.symbol] || 0) :
-                            formatNumber(trade.quantity)
-                          }
-                        </td>
-                        <td>
-                          {formatNumber(Number(trade.price).toFixed(2))}
-                        </td>
-                        <td>
-                          {formatNumber(Number(trade.priceTL).toFixed(2))}
-                          {' '}
-                          <span className="exchange-rate">
-                            (1$ = {Number(trade.exchangeRate).toFixed(2)} ₺)
-                          </span>
-                        </td>
-                        <td>
-                          <div 
-                            className="actions-menu"
-                            ref={el => menuRefs.current[`menu-${index}`] = el}
+          <div className="two-column-layout">
+            {/* Sol kolon: Özet ve işlemler */}
+            <div className="left-column">
+              {/* Özet bilgiler */}
+              {trades.length > 0 && renderSummary()}
+
+              {/* İşlem tablosu */}
+              <div className="trade-table-wrapper">
+                <table className="trade-table">
+                  <thead>
+                    <tr>
+                      <th>İşlem Tarihi</th>
+                      <th>İşlem Tipi</th>
+                      <th>Sembol</th>
+                      <th>Adet</th>
+                      <th>Fiyat ($)</th>
+                      <th>Fiyat (₺)</th>
+                      <th>İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trades
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))
+                      .map((trade, index) => (
+                        <>
+                          <tr 
+                            key={`row-${index}`}
+                            className={`trade-row ${openRows.includes(index) ? 'expanded' : ''}`} 
+                            onClick={() => trade.type === 'Satış' && handleRowClick(index)}
                           >
-                            <button 
-                              className="menu-toggle" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const menuKey = `menu-${index}`;
-                                const currentOpen = openRows.includes(menuKey);
-                                setOpenRows(prev => 
-                                  currentOpen 
-                                    ? prev.filter(i => i !== menuKey)
-                                    : [...prev, menuKey]
-                                );
-                              }}
-                            >
-                              ⋮
-                            </button>
-                            {openRows.includes(`menu-${index}`) && (
-                              <div className="menu-items">
-                                <button onClick={(e) => { e.stopPropagation(); handleEdit(index); }}>
-                                  Düzenle
+                            <td>
+                              {trade.type === 'Satış' && (
+                                <span className={`collapse-icon ${openRows.includes(index) ? 'open' : ''}`}>▶</span>
+                              )}
+                              {formatDateTR(trade.date)}
+                            </td>
+                            <td>{trade.type}</td>
+                            <td>{trade.symbol}</td>
+                            <td>
+                              {trade.type === 'Temettü' ? 
+                                formatNumber(remainingShares[trade.symbol] || 0) :
+                                formatNumber(trade.quantity)
+                              }
+                            </td>
+                            <td>
+                              {formatNumber(Number(trade.price).toFixed(2))}
+                            </td>
+                            <td>
+                              {formatNumber(Number(trade.priceTL).toFixed(2))}
+                              {' '}
+                              <span className="exchange-rate">
+                                (1$ = {Number(trade.exchangeRate).toFixed(2)} ₺)
+                              </span>
+                            </td>
+                            <td>
+                              <div 
+                                className="actions-menu"
+                                ref={el => menuRefs.current[`menu-${index}`] = el}
+                              >
+                                <button 
+                                  className="menu-toggle" 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const menuKey = `menu-${index}`;
+                                    const currentOpen = openRows.includes(menuKey);
+                                    setOpenRows(prev => 
+                                      currentOpen 
+                                        ? prev.filter(i => i !== menuKey)
+                                        : [...prev, menuKey]
+                                    );
+                                  }}
+                                >
+                                  ⋮
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }}>
-                                  Sil
-                                </button>
+                                {openRows.includes(`menu-${index}`) && (
+                                  <div className="menu-items">
+                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(index); }}>
+                                      Düzenle
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(index); }}>
+                                      Sil
+                                    </button>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
+                            </td>
+                          </tr>
+                          {openRows.includes(index) && trade.type === 'Satış' && (
+                            <tr key={`details-${index}`} className="details-row">
+                              <td colSpan="7">
+                                <SaleDetails 
+                                  trade={trade} 
+                                  trades={trades} 
+                                  indexData={indexData}
+                                  getIndexForDate={getIndexForDate}
+                                />
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))}
+                    {isAdding && (
+                      <tr className="adding-row">
+                        <td>
+                          <input
+                            type="date"
+                            name="date"
+                            value={newTrade.date}
+                            onChange={handleInputChange}
+                            max={today}
+                            className="table-input"
+                          />
+                        </td>
+                        <td>
+                          <select
+                            name="type"
+                            value={newTrade.type}
+                            onChange={handleInputChange}
+                            className="table-input"
+                          >
+                            <option value="Alış">Alış</option>
+                            <option value="Satış">Satış</option>
+                            <option value="Temettü">Temettü</option>
+                          </select>
+                        </td>
+                        <td>
+                          {newTrade.type === 'Alış' ? (
+                            <input
+                              type="text"
+                              name="symbol"
+                              value={newTrade.symbol}
+                              onChange={handleInputChange}
+                              placeholder="AAPL"
+                              className="table-input"
+                            />
+                          ) : (
+                            <select
+                              name="symbol"
+                              value={newTrade.symbol}
+                              onChange={handleInputChange}
+                              className="table-input"
+                            >
+                              <option value="">Sembol Seçin</option>
+                              {getAvailableSymbols().map(symbol => (
+                                <option key={symbol} value={symbol}>
+                                  {symbol} ({remainingShares[symbol] || 0} adet)
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </td>
+                        <td>
+                          {newTrade.type === 'Temettü' ? (
+                            <input
+                              type="number"
+                              name="quantity"
+                              value={remainingShares[newTrade.symbol] || ''}
+                              disabled
+                              className="table-input"
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              name="quantity"
+                              value={newTrade.quantity}
+                              onChange={handleInputChange}
+                              placeholder="100"
+                              className="table-input"
+                            />
+                          )}
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            name="price"
+                            value={newTrade.price}
+                            onChange={handleInputChange}
+                            placeholder={
+                              newTrade.type === 'Alış' ? 'Alış Fiyatı' : 
+                              newTrade.type === 'Satış' ? 'Satış Fiyatı' :
+                              'Toplam Temettü Tutarı ($)'
+                            }
+                            className="table-input"
+                          />
+                        </td>
+                        <td>
+                          {newTrade.price && (newTrade.quantity || newTrade.type === 'Temettü') ? (
+                            <>
+                              {formatNumber((Number(newTrade.price) * (getExchangeRateForDate(newTrade.date) || 0) * (newTrade.type === 'Temettü' ? 1 : Number(newTrade.quantity))).toFixed(2))}
+                              {' '}
+                              <span className="exchange-rate">
+                                (1$ = {(getExchangeRateForDate(newTrade.date) || 0).toFixed(2)} ₺)
+                              </span>
+                            </>
+                          ) : '-'}
+                        </td>
+                        <td>
+                          <button className="save-btn" onClick={handleAddTrade}>
+                            {editingIndex !== null ? 'Güncelle' : 'Kaydet'}
+                          </button>
+                          <button 
+                            className="cancel-btn" 
+                            onClick={() => {
+                              setIsAdding(false);
+                              setEditingIndex(null);
+                              setNewTrade({
+                                symbol: '',
+                                type: 'Alış',
+                                quantity: '',
+                                price: '',
+                                date: new Date().toISOString().split('T')[0]
+                              });
+                            }}
+                          >
+                            İptal
+                          </button>
                         </td>
                       </tr>
-                      {openRows.includes(index) && trade.type === 'Satış' && (
-                        <tr key={`details-${index}`} className="details-row">
-                          <td colSpan="7">
-                            <SaleDetails 
-                              trade={trade} 
-                              trades={trades} 
-                              indexData={indexData}
-                              getIndexForDate={getIndexForDate}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </>
-                  ))}
-                {isAdding && (
-                  <tr className="adding-row">
-                    <td>
-                      <input
-                        type="date"
-                        name="date"
-                        value={newTrade.date}
-                        onChange={handleInputChange}
-                        max={today}
-                        className="table-input"
-                      />
-                    </td>
-                    <td>
-                      <select
-                        name="type"
-                        value={newTrade.type}
-                        onChange={handleInputChange}
-                        className="table-input"
-                      >
-                        <option value="Alış">Alış</option>
-                        <option value="Satış">Satış</option>
-                        <option value="Temettü">Temettü</option>
-                      </select>
-                    </td>
-                    <td>
-                      {newTrade.type === 'Alış' ? (
-                        <input
-                          type="text"
-                          name="symbol"
-                          value={newTrade.symbol}
-                          onChange={handleInputChange}
-                          placeholder="AAPL"
-                          className="table-input"
-                        />
-                      ) : (
-                        <select
-                          name="symbol"
-                          value={newTrade.symbol}
-                          onChange={handleInputChange}
-                          className="table-input"
-                        >
-                          <option value="">Sembol Seçin</option>
-                          {getAvailableSymbols().map(symbol => (
-                            <option key={symbol} value={symbol}>
-                              {symbol} ({remainingShares[symbol] || 0} adet)
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </td>
-                    <td>
-                      {newTrade.type === 'Temettü' ? (
-                        <input
-                          type="number"
-                          name="quantity"
-                          value={remainingShares[newTrade.symbol] || ''}
-                          disabled
-                          className="table-input"
-                        />
-                      ) : (
-                        <input
-                          type="number"
-                          name="quantity"
-                          value={newTrade.quantity}
-                          onChange={handleInputChange}
-                          placeholder="100"
-                          className="table-input"
-                        />
-                      )}
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="price"
-                        value={newTrade.price}
-                        onChange={handleInputChange}
-                        placeholder={
-                          newTrade.type === 'Alış' ? 'Alış Fiyatı' : 
-                          newTrade.type === 'Satış' ? 'Satış Fiyatı' :
-                          'Toplam Temettü Tutarı ($)'
-                        }
-                        className="table-input"
-                      />
-                    </td>
-                    <td>
-                      {newTrade.price && (newTrade.quantity || newTrade.type === 'Temettü') ? (
-                        <>
-                          {formatNumber((Number(newTrade.price) * (getExchangeRateForDate(newTrade.date) || 0) * (newTrade.type === 'Temettü' ? 1 : Number(newTrade.quantity))).toFixed(2))}
-                          {' '}
-                          <span className="exchange-rate">
-                            (1$ = {(getExchangeRateForDate(newTrade.date) || 0).toFixed(2)} ₺)
-                          </span>
-                        </>
-                      ) : '-'}
-                    </td>
-                    <td>
-                      <button className="save-btn" onClick={handleAddTrade}>
-                        {editingIndex !== null ? 'Güncelle' : 'Kaydet'}
-                      </button>
-                      <button 
-                        className="cancel-btn" 
-                        onClick={() => {
-                          setIsAdding(false);
-                          setEditingIndex(null);
-                          setNewTrade({
-                            symbol: '',
-                            type: 'Alış',
-                            quantity: '',
-                            price: '',
-                            date: new Date().toISOString().split('T')[0]
-                          });
-                        }}
-                      >
-                        İptal
-                      </button>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {!isAdding && (
+                <button className="add-trade-btn" onClick={() => setIsAdding(true)}>
+                  Yeni İşlem Ekle
+                </button>
+              )}
+            </div>
+
+            {/* Sağ kolon: Vergi hesaplaması */}
+            <div className="right-column">
+              {trades.length > 0 && (
+                <TaxCalculation 
+                  trades={trades}
+                  profitLoss={profitLossTL}
+                  temettuIstisnasi={temettuIstisnasi}
+                />
+              )}
+            </div>
           </div>
-          {!isAdding && (
-            <button className="add-trade-btn" onClick={() => setIsAdding(true)}>
-              Yeni İşlem Ekle
-            </button>
-          )}
         </>
       )}
     </div>
