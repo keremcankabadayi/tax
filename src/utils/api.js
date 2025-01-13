@@ -41,3 +41,13 @@ export const fetchFromPantry = async (basketName, retryCount = 0, onRetry = null
       .catch(reject);
   });
 }; 
+
+export const fetchFAQData = async () => {
+  try {
+    const response = await fetchFromPantry('faq');
+    return response;
+  } catch (error) {
+    console.error('FAQ verileri alınamadı:', error);
+    throw error;
+  }
+}; 
