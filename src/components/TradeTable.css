@@ -53,11 +53,15 @@
 }
 
 .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin: 0;
   padding: 15px;
 }
 
 .trade-table {
+  min-width: 800px;
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 0;
@@ -129,9 +133,12 @@
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .summary-table {
+  min-width: 600px;
   width: 100%;
   border-collapse: collapse;
 }
@@ -508,6 +515,7 @@ select.table-input {
 }
 
 .dividend-details-table {
+  min-width: 600px;
   width: 100%;
   border-collapse: collapse;
   margin: 10px 0;
@@ -683,10 +691,16 @@ select.table-input {
 
 .two-column-layout {
   display: grid;
-  grid-template-columns: 60% 40%;
+  grid-template-columns: 1fr;
   gap: 20px;
   align-items: start;
   min-height: calc(100vh - 100px);
+}
+
+@media (min-width: 1024px) {
+  .two-column-layout {
+    grid-template-columns: 60% 40%;
+  }
 }
 
 .left-column {
@@ -697,122 +711,197 @@ select.table-input {
 }
 
 .right-column {
-  position: sticky;
-  top: 85px;
-  align-self: start;
-  max-height: calc(100vh - 105px);
-  overflow-y: auto;
-}
-
-.right-column::-webkit-scrollbar {
-  width: 8px;
-}
-
-.right-column::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.right-column::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.right-column::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.table-actions {
   position: relative;
-  display: flex;
-  justify-content: flex-end;
-  margin: 20px 0;
-  padding: 15px;
-  background-color: white;
+  align-self: start;
+  background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.hamburger-menu {
-  position: relative;
-  display: inline-block;
-}
-
-.hamburger-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #2c3e50;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.hamburger-button:hover {
-  background-color: #f5f5f5;
-  transform: scale(1.05);
-}
-
-.hamburger-dropdown {
-  position: absolute;
-  top: calc(100% + 5px);
-  right: 0;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  min-width: 220px;
-  animation: fadeIn 0.2s ease;
-  border: 1px solid #eee;
-}
-
-.hamburger-dropdown button {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 12px 16px;
-  text-align: left;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #333;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.hamburger-dropdown button:hover {
-  background-color: #f8f9fa;
-  padding-left: 20px;
-}
-
-.hamburger-dropdown button:first-child {
-  border-radius: 8px 8px 0 0;
-}
-
-.hamburger-dropdown button:last-child {
-  border-radius: 0 0 8px 8px;
-  border-top: 1px solid #eee;
-}
-
-.hamburger-dropdown button.add-trade {
-  color: #2ecc71;
-  font-weight: 500;
-}
-
-.hamburger-dropdown button.reset-cache {
-  color: #e74c3c;
-  font-weight: 500;
-}
-
-.hamburger-dropdown button i {
-  margin-right: 10px;
-  font-size: 16px;
-  width: 20px;
-  text-align: center;
+@media (min-width: 1024px) {
+  .right-column {
+    position: sticky;
+    top: 85px;
+    max-height: calc(100vh - 105px);
+    overflow-y: auto;
+  }
 }
 
 .table-responsive {
-  margin-top: 0;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 15px;
+}
+
+.trade-table {
+  min-width: 800px;
+  width: 100%;
+}
+
+.summary-section {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.summary-table {
+  min-width: 600px;
+  width: 100%;
+}
+
+.dividend-details-table {
+  min-width: 600px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .table-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .summary-table {
+    min-width: 600px;
+  }
+
+  .summary-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobil cihazlar için düzenlemeler */
+@media (max-width: 480px) {
+  .table-responsive {
+    padding: 10px;
+    margin: 0;
+  }
+
+  .trade-table-container {
+    padding: 10px;
+  }
+
+  .summary-section {
+    padding: 10px;
+    margin: 10px 0;
+  }
+
+  .table-container {
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .table-actions {
+    margin: 0;
+    padding: 10px;
+    border-radius: 0;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .action-button {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .action-button i {
+    margin-right: 6px;
+  }
+
+  .table-responsive {
+    padding: 0;
+  }
+
+  .trade-table th,
+  .trade-table td {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .trade-table {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* Tablet için düzenlemeler */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .table-responsive {
+    padding: 15px;
+  }
+
+  .trade-table-container {
+    padding: 15px;
+  }
+
+  .summary-section {
+    padding: 15px;
+  }
+}
+
+/* Scrollbar stilleri */
+.table-responsive::-webkit-scrollbar,
+.summary-section::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track,
+.summary-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.summary-section::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.summary-section::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.title-container {
+  margin-bottom: 20px;
+  padding: 0 15px;
+}
+
+.title-container h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.version {
+  font-size: 0.8em;
+  color: #6c757d;
+  font-weight: normal;
+  margin-left: 8px;
+}
+
+@media (max-width: 480px) {
+  .title-container {
+    padding: 0 10px;
+  }
+  
+  .title-container h2 {
+    font-size: 1.2rem;
+  }
 }

@@ -11,9 +11,13 @@ import { fetchFromPantry } from '../utils/api';
 const STORAGE_KEY = 'tax_trades_data';
 const PANTRY_ID = '60e512d0-f495-4a56-b640-e0e30632d99f';
 
-// Sayıyı virgüllü formata çevir
+// Sayı formatlama fonksiyonu
 const formatNumber = (number) => {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if (number === null || number === undefined) return '';
+  return new Intl.NumberFormat('tr-TR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(number);
 };
 
 // Tarihi Türkçe formata çevir
@@ -472,7 +476,6 @@ const TradeTable = ({ temettuIstisnasi }) => {
               <th>Sembol</th>
               <th>Eldeki Adet</th>
               <th>Kâr/Zarar (₺)</th>
-              <th>Temettü ($)</th>
               <th>Temettü (₺)</th>
             </tr>
           </thead>
@@ -507,12 +510,11 @@ const TradeTable = ({ temettuIstisnasi }) => {
                   <td className={(profitLossTL[symbol] || 0) >= 0 ? 'profit' : 'loss'}>
                     {formatNumber((profitLossTL[symbol] || 0).toFixed(2))}
                   </td>
-                  <td>{formatNumber((dividendTotals[symbol]?.usd || 0).toFixed(2))}</td>
                   <td>{formatNumber((dividendTotals[symbol]?.tl || 0).toFixed(2))}</td>
                 </tr>
                 {openRows.includes(`summary-${symbol}`) && (
                   <tr className="dividend-details-row">
-                    <td colSpan="5">
+                    <td colSpan="4">
                       <table className="dividend-details-table">
                         <thead>
                           <tr>
@@ -549,7 +551,6 @@ const TradeTable = ({ temettuIstisnasi }) => {
               <td className={totalProfitLossTL >= 0 ? 'profit' : 'loss'}>
                 {formatNumber(totalProfitLossTL.toFixed(2))}
               </td>
-              <td>{formatNumber(totalDividendUSD.toFixed(2))}</td>
               <td>{formatNumber(totalDividendTL.toFixed(2))}</td>
             </tr>
           </tbody>
@@ -602,6 +603,9 @@ const TradeTable = ({ temettuIstisnasi }) => {
     <div className="trade-table-container">
       <div className="two-column-layout">
         <div className="left-column">
+          <div className="title-container">
+            <h2>ABD Hisse/ETF Vergi Takip Sistemi</h2>
+          </div>
           {trades.length > 0 && renderSummary()}
           <div className="table-container">
             <div className="table-actions">
