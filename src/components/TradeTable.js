@@ -604,7 +604,7 @@ const TradeTable = ({ temettuIstisnasi }) => {
       <div className="two-column-layout">
         <div className="left-column">
           <div className="title-container">
-            <h2>ABD Hisse/ETF Vergi Takip Sistemi</h2>
+            
           </div>
           {trades.length > 0 && renderSummary()}
           <div className="table-container">

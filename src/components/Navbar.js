@@ -1,9 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Navbar.css';
 
-const APP_VERSION = '0.2.0';
+const APP_VERSION = '0.3.0';
 
-const Navbar = () => {
+function Navbar() {
   return (
     <nav className="nav-items">
       <div className="nav-content">
@@ -12,12 +13,12 @@ const Navbar = () => {
           <span className="version">v{APP_VERSION}</span>
         </div>
         <div className="nav-links">
-          <a href="/tax" className="nav-link">Anasayfa</a>
-          <a href="/tax/faq" className="nav-link">Sıkça Sorulan Sorular</a>
+          <Link to="/" className="nav-link">Anasayfa</Link>
+          <Link to="/faq" className="nav-link">Sıkça Sorulan Sorular</Link>
         </div>
       </div>
     </nav>
   );
-};
+}
 
 export default Navbar; 

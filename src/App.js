@@ -1,23 +1,19 @@
-import React, { useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
 import TradeTable from './components/TradeTable';
-import Navbar from './components/Navbar';
+import FAQ from './components/FAQ';
 
 function App() {
-  useEffect(() => {
-    // Sayfa yüklendiğinde localStorage'dan tema tercihini al
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-bs-theme', savedTheme);
-  }, []);
+  const temettuIstisnasi = 5250;
 
   return (
-    <div className="App">
-      <Navbar />
-      <div className="container">
-        <TradeTable />
-      </div>
-    </div>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<TradeTable temettuIstisnasi={temettuIstisnasi} />} />
+        <Route path="/faq" element={<FAQ />} />
+      </Routes>
+    </Layout>
   );
 }
 
