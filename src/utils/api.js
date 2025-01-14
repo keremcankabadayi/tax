@@ -5,7 +5,7 @@ const BASE_URL = 'https://getpantry.cloud/apiv1/pantry';
 let requestQueue = Promise.resolve();
 const RATE_LIMIT_DELAY = 1000; // 1000ms delay between requests
 const MAX_RETRIES = 3; // Maximum number of retries
-const INITIAL_RETRY_DELAY = 2000; // Initial retry delay in ms
+const INITIAL_RETRY_DELAY = 2000; // 2 seconds
 
 export const fetchFromPantry = async (basketName, retryCount = 0, onRetry = null) => {
   // Kuyruğa yeni istek ekle

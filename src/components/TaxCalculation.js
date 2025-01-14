@@ -134,79 +134,81 @@ const TaxCalculation = ({ trades, profitLoss }) => {
   );
 
   return (
-    <div className="tax-calculation">
-      <h3>
-        Vergi Hesaplaması
-        <div 
-          ref={iconRef}
-          className="info-icon"
-          onMouseEnter={() => setShowTaxTooltip(true)}
-          onMouseLeave={() => setShowTaxTooltip(false)}
-          role="button"
-          aria-label="Vergi dilimleri bilgisi"
-        >
-          ℹ️
-          {showTaxTooltip && (
-            <div className="tooltip">
-              {renderTaxBracketsTooltip()}
-            </div>
-          )}
-        </div>
-      </h3>
-      <table className="tax-table">
-        <thead>
-          <tr>
-            <th>Gelir Türü</th>
-            <th>Tutar (₺)</th>
-            <th>Vergilendirilebilir (₺)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Kâr</td>
-            <td>{formatNumber(totals.profitTL.toFixed(2))}</td>
-            <td>{formatNumber(totals.profitTL.toFixed(2))}</td>
-          </tr>
-          <tr>
-            <td>Temettü</td>
-            <td>{formatNumber(totals.dividendTL.toFixed(2))}</td>
-            <td>{formatNumber(taxableDividend.toFixed(2))}</td>
-          </tr>
-          <tr className="total-row">
-            <td>Toplam</td>
-            <td>{formatNumber((totals.profitTL + totals.dividendTL).toFixed(2))}</td>
-            <td>{formatNumber(totalTaxableIncome.toFixed(2))}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div className="tax-calculation-container">
+      <div className="tax-calculation">
+        <h3>
+          Vergi Hesaplaması
+          <div 
+            ref={iconRef}
+            className="info-icon"
+            onMouseEnter={() => setShowTaxTooltip(true)}
+            onMouseLeave={() => setShowTaxTooltip(false)}
+            role="button"
+            aria-label="Vergi dilimleri bilgisi"
+          >
+            ℹ️
+            {showTaxTooltip && (
+              <div className="tooltip">
+                {renderTaxBracketsTooltip()}
+              </div>
+            )}
+          </div>
+        </h3>
+        <table className="tax-table">
+          <thead>
+            <tr>
+              <th>Gelir Türü</th>
+              <th>Tutar (₺)</th>
+              <th>Vergilendirilebilir (₺)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Kâr</td>
+              <td>{formatNumber(totals.profitTL.toFixed(2))}</td>
+              <td>{formatNumber(totals.profitTL.toFixed(2))}</td>
+            </tr>
+            <tr>
+              <td>Temettü</td>
+              <td>{formatNumber(totals.dividendTL.toFixed(2))}</td>
+              <td>{formatNumber(taxableDividend.toFixed(2))}</td>
+            </tr>
+            <tr className="total-row">
+              <td>Toplam</td>
+              <td>{formatNumber((totals.profitTL + totals.dividendTL).toFixed(2))}</td>
+              <td>{formatNumber(totalTaxableIncome.toFixed(2))}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <div className="tax-summary">
-        <div className="calculation-explanation">
-          <p>Vergi dilimleri bazında hesaplama:</p>
-          <table className="tax-breakdown-table">
-            <thead>
-              <tr>
-                <th>Dilim</th>
-                <th>Oran</th>
-                <th>Vergi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {calculateTaxBreakdown(totalTaxableIncome).map((bracket, index) => (
-                <tr key={index}>
-                  <td>
-                    {formatNumber(bracket.start)} - {typeof bracket.end === 'number' ? formatNumber(bracket.end) : bracket.end}
-                  </td>
-                  <td>%{bracket.rate}</td>
-                  <td>{formatNumber(bracket.tax.toFixed(2))} ₺</td>
+        <div className="tax-summary">
+          <div className="calculation-explanation">
+            <p>Vergi dilimleri bazında hesaplama:</p>
+            <table className="tax-breakdown-table">
+              <thead>
+                <tr>
+                  <th>Dilim</th>
+                  <th>Oran</th>
+                  <th>Vergi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="tax-detail total">
-          <span>Ödenecek Vergi:</span>
-          <span>{formatNumber(totalTax.toFixed(2))} ₺</span>
+              </thead>
+              <tbody>
+                {calculateTaxBreakdown(totalTaxableIncome).map((bracket, index) => (
+                  <tr key={index}>
+                    <td>
+                      {formatNumber(bracket.start)} - {typeof bracket.end === 'number' ? formatNumber(bracket.end) : bracket.end}
+                    </td>
+                    <td>%{bracket.rate}</td>
+                    <td>{formatNumber(bracket.tax.toFixed(2))} ₺</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="tax-detail total">
+            <span>Ödenecek Vergi:</span>
+            <span>{formatNumber(totalTax.toFixed(2))} ₺</span>
+          </div>
         </div>
       </div>
     </div>

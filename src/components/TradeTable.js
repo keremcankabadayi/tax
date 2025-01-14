@@ -92,23 +92,24 @@ const TradeTable = ({ temettuIstisnasi }) => {
   const [tradeToDelete, setTradeToDelete] = useState(null);
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Exchange rate verilerini çek
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        setIsLoading(true);
-        setIsLoadingExchangeRates(true);
-        setIsLoadingIndexData(true);
-        
-        // Döviz kurlarını çek
-        const exchangeRatesData = await fetchFromPantry('usdtry', 0, (count, delay) => {
+        const exchangeRateData = await fetchFromPantry('usdtry', 0, (count, delay) => {
+          setRetryCount(count);
+          setRetryDelay(delay);
+        });
+        const indexData = await fetchFromPantry('yiufe', 0, (count, delay) => {
           setRetryCount(count);
           setRetryDelay(delay);
         });
         
         // Exchange rates işleme
-        const sortedData = Object.entries(exchangeRatesData)
+        const sortedData = Object.entries(exchangeRateData)
           .filter(([key]) => key !== 'key')
           .sort(([dateA], [dateB]) => {
             const [dayA, monthA, yearA] = dateA.split('.');
@@ -125,25 +126,20 @@ const TradeTable = ({ temettuIstisnasi }) => {
         setRetryCount(0);
         
         // Endeks verilerini çek
-        const indexData = await fetchFromPantry('yiufe', 0, (count, delay) => {
-          setRetryCount(count);
-          setRetryDelay(delay);
-        });
-        
-        // Index data işleme
         if (indexData.veriler) {
           setIndexData(indexData.veriler);
         }
         setIsLoadingIndexData(false);
         setRetryCount(0);
       } catch (error) {
-        console.error('Veri çekme hatası:', error);
-        // Sadece 429 olmayan hatalarda bildirim göster
+        console.error('Error fetching data:', error);
         if (!error.message?.includes('429')) {
           addNotification('Veriler alınamadı. Lütfen sayfayı yenileyin.', 'error');
         }
       } finally {
-        setIsLoading(false);
+        setLoading(false);
+        setRetryCount(0);
+        setRetryDelay(0);
       }
     };
 
@@ -782,6 +778,16 @@ const TradeTable = ({ temettuIstisnasi }) => {
         title="Tüm Verileri Sıfırla"
         message="Bu işlem tüm işlem geçmişinizi ve ayarlarınızı silecektir. Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?"
       />
+
+      {loading && (
+        <div className="loading-message">
+          {retryCount > 0 ? (
+            `Rate limit aşıldı. ${retryCount}. deneme yapılıyor... (${retryDelay} saniye bekleniyor)`
+          ) : (
+            'Veriler yükleniyor...'
+          )}
+        </div>
+      )}
     </div>
   );
 };

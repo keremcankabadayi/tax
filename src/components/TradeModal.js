@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './TradeModal.css';
 
 const formatNumber = (number) => {
@@ -17,6 +17,18 @@ const TradeModal = ({
   getAvailableSymbols,
   today
 }) => {
+  const [quantityError, setQuantityError] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setQuantityError('');
+    } else {
+      const lastYear = new Date().getFullYear() - 1;
+      const lastValidDate = `${lastYear}-12-31`;
+      onChange({ target: { name: 'date', value: lastValidDate } });
+    }
+  }, [isOpen, onChange]);
+
   if (!isOpen) return null;
 
   const calculateTotalAmount = () => {
@@ -37,6 +49,37 @@ const TradeModal = ({
       start: `${lastYear}-01-01`,
       end: `${lastYear}-12-31`
     };
+  };
+
+  const handleQuantityChange = (e) => {
+    const value = e.target.value;
+    if (trade.type === 'Satış' && trade.symbol) {
+      const maxQuantity = remainingShares[trade.symbol] || 0;
+      if (Number(value) > maxQuantity) {
+        setQuantityError(`Maksimum ${maxQuantity} adet satabilirsiniz`);
+      } else {
+        setQuantityError('');
+      }
+    }
+    onChange(e);
+  };
+
+  const handleChange = (e) => {
+    if (e.target.name === 'type' || e.target.name === 'symbol') {
+      setQuantityError('');
+    }
+    onChange(e);
+  };
+
+  const handleSave = () => {
+    if (trade.type === 'Satış' && trade.symbol) {
+      const maxQuantity = remainingShares[trade.symbol] || 0;
+      if (Number(trade.quantity) > maxQuantity) {
+        setQuantityError(`Maksimum ${maxQuantity} adet satabilirsiniz`);
+        return;
+      }
+    }
+    onSave();
   };
 
   const dateRange = getLastYearRange();
@@ -67,7 +110,7 @@ const TradeModal = ({
             <select
               name="type"
               value={trade.type}
-              onChange={onChange}
+              onChange={handleChange}
               className="form-control"
             >
               <option value="Alış">Alış</option>
@@ -83,7 +126,7 @@ const TradeModal = ({
                 type="text"
                 name="symbol"
                 value={trade.symbol}
-                onChange={onChange}
+                onChange={handleChange}
                 placeholder="AAPL"
                 className="form-control"
               />
@@ -91,7 +134,7 @@ const TradeModal = ({
               <select
                 name="symbol"
                 value={trade.symbol}
-                onChange={onChange}
+                onChange={handleChange}
                 className="form-control"
               >
                 <option value="">Sembol Seçin</option>
@@ -115,14 +158,17 @@ const TradeModal = ({
                 className="form-control"
               />
             ) : (
-              <input
-                type="number"
-                name="quantity"
-                value={trade.quantity}
-                onChange={onChange}
-                placeholder="100"
-                className="form-control"
-              />
+              <>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={trade.quantity}
+                  onChange={handleQuantityChange}
+                  placeholder={trade.type === 'Satış' && trade.symbol ? `Max: ${remainingShares[trade.symbol] || 0}` : "100"}
+                  className={`form-control ${quantityError ? 'error' : ''}`}
+                />
+                {quantityError && <div className="error-message">{quantityError}</div>}
+              </>
             )}
           </div>
 
@@ -138,6 +184,8 @@ const TradeModal = ({
               value={trade.price}
               onChange={onChange}
               className="form-control"
+              disabled={trade.type === 'Satış' && quantityError !== ''}
+              placeholder={trade.type === 'Alış' ? '0.00' : undefined}
             />
           </div>
 
@@ -152,7 +200,7 @@ const TradeModal = ({
         </div>
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onClose}>İptal</button>
-          <button className="btn-primary" onClick={onSave}>
+          <button className="btn-primary" onClick={handleSave}>
             {isEditing ? 'Güncelle' : 'Kaydet'}
           </button>
         </div>

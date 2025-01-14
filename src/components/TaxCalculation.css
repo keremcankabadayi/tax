@@ -1,11 +1,17 @@
-.tax-calculation {
+.tax-calculation-container {
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  min-width: 400px;
-  max-width: 450px;
-  width: fit-content;
+  width: 100%;
+  max-width: 500px;
+  margin: 3rem auto 0;
+  padding: 1rem;
+  position: relative;
+  z-index: 1000;
+}
+
+.tax-calculation {
+  width: 100%;
   position: relative;
 }
 
@@ -21,10 +27,29 @@
 }
 
 .tax-table {
+  background-color: white;
+  border-radius: 8px;
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1.5rem;
   font-size: 0.95rem;
+  table-layout: fixed;
+}
+
+.tax-table th, .tax-table td {
+  padding: 0.8rem 0.5rem;
+}
+
+.tax-table th:first-child,
+.tax-table td:first-child {
+  width: 30%;
+}
+
+.tax-table th:nth-child(2),
+.tax-table td:nth-child(2),
+.tax-table th:last-child,
+.tax-table td:last-child {
+  width: 35%;
 }
 
 .tax-table th {
@@ -68,7 +93,7 @@
 }
 
 .calculation-explanation {
-  margin-bottom: 1.5rem;
+  margin-bottom: .5rem;
 }
 
 .calculation-explanation p {

@@ -7,7 +7,7 @@
   border-bottom: 1px solid #eee;
   margin: 0;
   background-color: white;
-  border-radius: 8px 8px 0 0;
+  border-radius: 16px 16px 0 0;
 }
 
 .action-button {
@@ -47,9 +47,11 @@
 
 .table-container {
   background-color: white;
-  border-radius: 8px;
+  border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .table-responsive {
@@ -58,30 +60,70 @@
   -webkit-overflow-scrolling: touch;
   margin: 0;
   padding: 15px;
+  max-width: 100%;
 }
 
 .trade-table {
-  min-width: 800px;
+  min-width: 700px;
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 0;
   background-color: white;
   color: #333;
   border: none;
+  table-layout: fixed;
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
 }
 
 .trade-table th,
 .trade-table td {
   padding: 1rem;
   border-bottom: 1px solid #eee;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trade-table th:first-child,
+.trade-table td:first-child {
+  width: 15%;
+}
+
+.trade-table th:nth-child(2),
+.trade-table td:nth-child(2) {
+  width: 12%;
+}
+
+.trade-table th:nth-child(3),
+.trade-table td:nth-child(3) {
+  width: 12%;
+}
+
+.trade-table th:nth-child(4),
+.trade-table td:nth-child(4) {
+  width: 12%;
+}
+
+.trade-table th:nth-child(5),
+.trade-table td:nth-child(5),
+.trade-table th:nth-child(6),
+.trade-table td:nth-child(6) {
+  width: 15%;
+}
+
+.trade-table th:last-child,
+.trade-table td:last-child {
+  width: 10%;
 }
 
 .trade-table thead th {
   font-weight: 600;
   text-align: left;
-  background-color: white;
-  color: #2c3e50;
+  background-color: #4a90e2;
+  color: white;
   border-bottom: 2px solid #eee;
+  padding: 0.8rem 1rem;
 }
 
 .trade-table tbody tr:last-child td {
@@ -367,6 +409,7 @@ select.table-input {
 .actions-menu {
   position: relative;
   display: inline-block;
+  z-index: 1000;
 }
 
 .menu-toggle {
@@ -387,13 +430,14 @@ select.table-input {
 .menu-items {
   position: absolute;
   right: 0;
-  top: 100%;
+  bottom: 100%;
   background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: 9999;
   min-width: 120px;
   animation: fadeIn 0.2s ease;
+  transform-origin: bottom right;
 }
 
 .menu-items button {
@@ -425,7 +469,7 @@ select.table-input {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -711,19 +755,17 @@ select.table-input {
 }
 
 .right-column {
-  position: relative;
-  align-self: start;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  padding: 1rem;
+  background: transparent;
 }
 
 @media (min-width: 1024px) {
   .right-column {
     position: sticky;
-    top: 85px;
-    max-height: calc(100vh - 105px);
-    overflow-y: auto;
+    top: 1rem;
+    max-width: 450px;
+    background: transparent;
   }
 }
 
@@ -904,4 +946,45 @@ select.table-input {
   .title-container h2 {
     font-size: 1.2rem;
   }
+}
+
+.loading-message {
+  text-align: center;
+  padding: 20px;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .loading-message {
+    padding: 15px;
+    font-size: 0.9rem;
+    margin: 15px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .loading-message {
+    padding: 12px;
+    font-size: 0.85rem;
+    margin: 12px 0;
+  }
+}
+
+.table-responsive {
+  overflow: visible;
+}
+
+.trade-table {
+  position: relative;
+}
+
+.trade-table td:last-child {
+  position: relative;
+  overflow: visible;
 }
