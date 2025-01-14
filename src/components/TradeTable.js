@@ -78,7 +78,7 @@ const TradeTable = ({ temettuIstisnasi }) => {
     type: 'Alış',
     quantity: '',
     price: '',
-    date: new Date().toISOString().split('T')[0]
+    date: ''
   });
   const [openRows, setOpenRows] = useState([]);
   const menuRefs = useRef({});
@@ -349,7 +349,7 @@ const TradeTable = ({ temettuIstisnasi }) => {
           type: 'Alış',
           quantity: '',
           price: '',
-          date: new Date().toISOString().split('T')[0]
+          date: ''
         });
         setEditingIndex(null);
       } catch (error) {
@@ -745,7 +745,7 @@ const TradeTable = ({ temettuIstisnasi }) => {
             type: 'Alış',
             quantity: '',
             price: '',
-            date: new Date().toISOString().split('T')[0]
+            date: ''
           });
         }}
         trade={newTrade}

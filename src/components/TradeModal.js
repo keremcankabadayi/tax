@@ -22,12 +22,8 @@ const TradeModal = ({
   useEffect(() => {
     if (!isOpen) {
       setQuantityError('');
-    } else {
-      const lastYear = new Date().getFullYear() - 1;
-      const lastValidDate = `${lastYear}-12-31`;
-      onChange({ target: { name: 'date', value: lastValidDate } });
     }
-  }, [isOpen, onChange]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -71,6 +67,13 @@ const TradeModal = ({
     onChange(e);
   };
 
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    if (selectedDate) {
+      onChange({ target: { name: 'date', value: selectedDate } });
+    }
+  };
+
   const handleSave = () => {
     if (trade.type === 'Satış' && trade.symbol) {
       const maxQuantity = remainingShares[trade.symbol] || 0;
@@ -98,7 +101,7 @@ const TradeModal = ({
               type="date"
               name="date"
               value={trade.date}
-              onChange={onChange}
+              onChange={handleDateChange}
               min={dateRange.start}
               max={dateRange.end}
               className="form-control"
