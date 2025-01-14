@@ -275,6 +275,23 @@ const TradeTable = ({ temettuIstisnasi }) => {
     if (newTrade.symbol && newTrade.price && newTrade.date && 
         (newTrade.type === 'Temettü' || newTrade.quantity)) {
       try {
+        // Satış işlemi için tarih kontrolü
+        if (newTrade.type === 'Satış') {
+          // İlgili sembolün en eski alım tarihini bul
+          const relevantTrades = editingIndex !== null 
+            ? trades.filter((_, index) => index !== editingIndex) // Düzenleme modunda mevcut işlemi hariç tut
+            : trades;
+
+          const firstPurchase = relevantTrades
+            .filter(t => t.symbol === newTrade.symbol && t.type === 'Alış')
+            .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
+          if (firstPurchase && new Date(newTrade.date) < new Date(firstPurchase.date)) {
+            addNotification(`${newTrade.symbol} için ilk alım tarihi ${formatDateTR(firstPurchase.date)}. Bu tarihten önce satış yapılamaz.`, 'error');
+            return;
+          }
+        }
+
         const exchangeRate = getExchangeRateForDate(newTrade.date);
         
         if (!exchangeRate) {
@@ -597,10 +614,19 @@ const TradeTable = ({ temettuIstisnasi }) => {
 
   return (
     <div className="trade-table-container">
+      <div className="notifications-container">
+        {notifications.map(notification => (
+          <Notification
+            key={notification.id}
+            message={notification.message}
+            type={notification.type}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+      </div>
       <div className="two-column-layout">
         <div className="left-column">
           <div className="title-container">
-            
           </div>
           {trades.length > 0 && renderSummary()}
           <div className="table-container">
