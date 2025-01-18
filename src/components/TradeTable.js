@@ -874,10 +874,12 @@ const TradeTable = ({ temettuIstisnasi }) => {
                             {formatNumber(trade.quantity)}
                           </td>
                           <td>
-                            {formatNumber(Number(trade.price).toFixed(2))}$
+                            {trade.type === 'Temettü' ? '-' : `${formatNumber(Number(trade.price).toFixed(2))}$`}
                           </td>
                           <td>
-                            {formatNumber(Number(trade.quantity * trade.price).toFixed(2))}$
+                            {trade.type === 'Temettü' 
+                              ? `${formatNumber(Number(trade.price).toFixed(2))}$`
+                              : `${formatNumber(Number(trade.quantity * trade.price).toFixed(2))}$`}
                             <span className="tl-value">({formatNumber(Number(trade.priceTL).toFixed(2))}₺)</span>
                           </td>
                           <td>
