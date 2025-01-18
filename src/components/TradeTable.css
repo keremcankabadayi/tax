@@ -2,47 +2,116 @@
   position: relative;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 15px;
+  padding: 20px;
   border-bottom: 1px solid #eee;
   margin: 0;
   background-color: white;
   border-radius: 16px 16px 0 0;
 }
 
+.buttons-container {
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+
 .action-button {
   display: inline-flex;
   align-items: center;
-  padding: 8px 16px;
+  justify-content: center;
+  padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 400;
   transition: all 0.2s ease;
+  background-color: #f5f5f5;
+  color: #333;
+  width: 36px;
+  height: 36px;
+  line-height: 1;
 }
 
-.action-button i {
-  margin-right: 8px;
-  font-size: 16px;
+.action-button:hover {
+  background-color: #e0e0e0;
 }
 
-.add-trade-button {
-  background-color: #2ecc71;
-  color: white;
+.action-button:active {
+  transform: translateY(1px);
 }
 
-.add-trade-button:hover {
-  background-color: #27ae60;
+.hamburger-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 2;
+  overflow: hidden;
+  animation: slideIn 0.2s ease;
 }
 
-.reset-cache-button {
-  background-color: #e74c3c;
-  color: white;
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.reset-cache-button:hover {
-  background-color: #c0392b;
+.menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .table-actions {
+    padding: 15px;
+  }
+
+  .action-button {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  .hamburger-menu {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-actions {
+    padding: 10px;
+  }
+
+  .action-button {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+
+  .hamburger-menu {
+    min-width: 140px;
+  }
 }
 
 .table-container {
@@ -1003,4 +1072,61 @@ select.table-input {
   font-size: 0.85em;
   color: #6b7280;
   margin-left: 4px;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-button,
+.reset-button,
+.export-button,
+.import-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.add-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.add-button:hover {
+  background-color: #45a049;
+}
+
+.reset-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.reset-button:hover {
+  background-color: #da190b;
+}
+
+.export-button {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+}
+
+.export-button:hover {
+  background: linear-gradient(135deg, #1976D2, #1565C0);
+  transform: translateY(-1px);
+}
+
+.import-button {
+  background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+  color: white;
+  cursor: pointer;
+}
+
+.import-button:hover {
+  background: linear-gradient(135deg, #7B1FA2, #6A1B9A);
+  transform: translateY(-1px);
 }

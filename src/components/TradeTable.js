@@ -737,6 +737,38 @@ const TradeTable = ({ temettuIstisnasi }) => {
     };
   }, []);
 
+  const exportData = () => {
+    const dataStr = JSON.stringify(trades, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vergi_islemleri.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    addNotification('Veriler başarıyla dışa aktarıldı', 'success');
+  };
+
+  const importData = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedTrades = JSON.parse(e.target.result);
+          setTrades(importedTrades);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(importedTrades));
+          addNotification('Veriler başarıyla içe aktarıldı', 'success');
+        } catch (error) {
+          addNotification('Geçersiz dosya formatı', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <div className="trade-table-container">
       <div className="notifications-container">
@@ -756,18 +788,56 @@ const TradeTable = ({ temettuIstisnasi }) => {
           {trades.length > 0 && renderSummary()}
           <div className="table-container">
             <div className="table-actions">
-              <button 
-                className="action-button add-trade-button"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <i>+</i> Yeni İşlem Ekle
-              </button>
-              <button 
-                className="action-button reset-cache-button"
-                onClick={() => setIsDeleteConfirmModalOpen(true)}
-              >
-                <i>🔄</i> Tüm Verileri Sıfırla
-              </button>
+              <div className="buttons-container">
+                <button 
+                  className="action-button add-trade-button"
+                  onClick={() => setIsModalOpen(true)}
+                  title="Yeni İşlem Ekle"
+                >
+                  +
+                </button>
+                <button 
+                  className="action-button hamburger-button"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  title="Diğer İşlemler"
+                >
+                  ⋮
+                </button>
+                {isMenuOpen && (
+                  <div className="hamburger-menu">
+                    <label className="menu-item">
+                      İçe Aktar
+                      <input
+                        type="file"
+                        accept=".json"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          setIsMenuOpen(false);
+                          importData(e);
+                        }}
+                      />
+                    </label>
+                    <button 
+                      className="menu-item"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        exportData();
+                      }}
+                    >
+                      Dışa Aktar
+                    </button>
+                    <button 
+                      className="menu-item"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsDeleteConfirmModalOpen(true);
+                      }}
+                    >
+                      Tüm Verileri Sıfırla
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="table-responsive">
               <table className="trade-table">
