@@ -11,63 +11,69 @@
   background-color: white;
 }
 
-.sale-details-table th,
-.sale-details-table td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-  white-space: nowrap;
-  line-height: 1.4;
-}
-
 .sale-details-table th {
+  width: 150px;
+  text-align: right;
+  padding: 10px;
   background-color: #f8f9fa;
   font-weight: 600;
   color: #495057;
-  font-size: 0.85em;
-  text-transform: uppercase;
+  border: 1px solid #eee;
 }
 
-.sale-details-table tr:last-child td {
-  border-bottom: none;
+.sale-details-table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #eee;
+  line-height: 1.4;
 }
 
-.sale-details-table tr:hover {
+.purchase-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+}
+
+.purchase-details-table th {
+  text-align: center;
+  padding: 8px;
   background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.85em;
+  border: 1px solid #eee;
+  width: auto;
 }
 
-.sale-details-table .profit {
+.purchase-details-table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #eee;
+}
+
+.profit {
   color: #2ecc71;
   font-weight: 600;
 }
 
-.sale-details-table .loss {
+.loss {
   color: #e74c3c;
   font-weight: 600;
 }
 
-.sale-details-table .index-values {
-  font-size: 0.9em;
+.index-values {
+  font-size: 0.85em;
   color: #666;
   font-weight: normal;
 }
 
-.sale-details-table .strikethrough {
+.strikethrough {
   text-decoration: line-through;
   color: #999;
-  font-size: 0.9em;
 }
 
-.sale-details-table .adjusted-price {
+.adjusted-price {
   color: #2c3e50;
   font-weight: 600;
-  font-size: 0.9em;
-}
-
-.sale-details-table td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-  white-space: nowrap;
-  line-height: 1.4;
 }

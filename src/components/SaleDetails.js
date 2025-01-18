@@ -160,64 +160,92 @@ const SaleDetails = ({ trade, trades, indexData }) => {
   return (
     <div className="sale-details">
       <table className="sale-details-table">
-        <thead>
-          <tr>
-            <th>Alış Tarihi</th>
-            <th>Toplam / Satılan / Kalan Adet</th>
-            <th>Alış $ / ₺</th>
-            <th>Satış $ / ₺</th>
-            <th>Kâr/Zarar ($)</th>
-            <th>Kâr/Zarar (₺)</th>
-            <th>Endeks Değişimi (%)</th>
-          </tr>
-        </thead>
         <tbody>
-          {fifoDetails.map((detail, index) => (
-            <tr key={index}>
-              <td>{formatDateTR(detail.date)}</td>
-              <td>
-                {formatNumber(detail.totalQuantity)} / {formatNumber(detail.quantity)} / {formatNumber(detail.totalQuantity - detail.quantity)}
-              </td>
-              <td>
-                {detail.indexChange >= 10 ? (
-                  <>
-                    <div>
-                      {formatNumber(detail.totalBuyUSD.toFixed(2))} / <span className="strikethrough">{formatNumber(detail.totalBuyTL.toFixed(2))}</span>
-                    </div>
-                    <div>
-                      {formatNumber(detail.totalBuyUSD.toFixed(2))} / <span className="adjusted-price">{formatNumber(detail.adjustedTotalBuyTL.toFixed(2))}</span>
-                    </div>
-                  </>
-                ) : (
-                  <>{formatNumber(detail.totalBuyUSD.toFixed(2))} / {formatNumber(detail.totalBuyTL.toFixed(2))}</>
-                )}
-              </td>
-              <td>
-                {formatNumber(detail.totalSellUSD.toFixed(2))} / {formatNumber(detail.totalSellTL.toFixed(2))}
-              </td>
-              <td className={detail.profitUSD >= 0 ? 'profit' : 'loss'}>
-                {formatNumber(detail.profitUSD.toFixed(2))}
-              </td>
-              <td className={detail.indexChange >= 10 ? 
-                (detail.adjustedProfitTL >= 0 ? 'profit' : 'loss') : 
-                (detail.profitTL >= 0 ? 'profit' : 'loss')}>
-                {detail.indexChange >= 10 ? 
-                  formatNumber(detail.adjustedProfitTL.toFixed(2)) :
-                  formatNumber(detail.profitTL.toFixed(2))}
-              </td>
-              <td className={detail.indexChange >= 10 ? 'profit' : ''}>
-                {detail.indexChange ? (
-                  <>
-                    {formatNumber(detail.indexChange.toFixed(2))}
-                    {' '}
-                    <span className="index-values">
-                      ({formatNumber(detail.buyIndex.toFixed(2))} - {formatNumber(detail.saleIndex.toFixed(2))})
-                    </span>
-                  </>
-                ) : 'N/A'}
-              </td>
-            </tr>
-          ))}
+          <tr>
+            <th>Satış Detayları</th>
+            <td>
+              <table className="purchase-details-table">
+                <thead>
+                  <tr>
+                    <th>Alış Tarihi</th>
+                    <th>Adet</th>
+                    <th>Alış Fiyatı ($)</th>
+                    <th>Alış Tutarı ($)</th>
+                    <th>Alış Tutarı (₺)</th>
+                    <th>Endeks Değişimi</th>
+                    <th>Kâr/Zarar (₺)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fifoDetails.map((detail, index) => (
+                    <tr key={index}>
+                      <td>{formatDateTR(detail.date)}</td>
+                      <td>{formatNumber(detail.quantity)}</td>
+                      <td>{formatNumber(Number(detail.buyPriceUSD).toFixed(2))}</td>
+                      <td>{formatNumber(Number(detail.totalBuyUSD).toFixed(2))}</td>
+                      <td>
+                        {detail.indexChange >= 10 ? (
+                          <>
+                            <span className="strikethrough">{formatNumber(Number(detail.totalBuyTL).toFixed(2))}</span>
+                            <br />
+                            <span className="adjusted-price">{formatNumber(Number(detail.adjustedTotalBuyTL).toFixed(2))}</span>
+                          </>
+                        ) : (
+                          formatNumber(Number(detail.totalBuyTL).toFixed(2))
+                        )}
+                      </td>
+                      <td className={detail.indexChange >= 10 ? 'profit' : ''}>
+                        {detail.indexChange ? (
+                          <>
+                            %{formatNumber(Number(detail.indexChange).toFixed(2))}
+                            <br />
+                            <span className="index-values">
+                              ({formatNumber(Number(detail.buyIndex).toFixed(2))} → {formatNumber(Number(detail.saleIndex).toFixed(2))})
+                            </span>
+                          </>
+                        ) : 'N/A'}
+                      </td>
+                      <td className={detail.indexChange >= 10 ? 
+                        (detail.adjustedProfitTL >= 0 ? 'profit' : 'loss') : 
+                        (detail.profitTL >= 0 ? 'profit' : 'loss')}>
+                        {detail.indexChange >= 10 ? 
+                          formatNumber(Number(detail.adjustedProfitTL).toFixed(2)) :
+                          formatNumber(Number(detail.profitTL).toFixed(2))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <th>Satış Tarihi</th>
+            <td>{formatDateTR(trade.date)}</td>
+          </tr>
+          <tr>
+            <th>Satış Fiyatı ($)</th>
+            <td>{formatNumber(Number(trade.price).toFixed(2))}</td>
+          </tr>
+          <tr>
+            <th>Satış Kuru</th>
+            <td>{formatNumber(Number(trade.exchangeRate).toFixed(2))}</td>
+          </tr>
+          <tr>
+            <th>Satış Tutarı (₺)</th>
+            <td>{formatNumber(Number(trade.priceTL).toFixed(2))}</td>
+          </tr>
+          <tr>
+            <th>Komisyon ($)</th>
+            <td>{formatNumber(Number(trade.commission || 0).toFixed(2))}</td>
+          </tr>
+          <tr>
+            <th>Komisyon (₺)</th>
+            <td>{formatNumber(Number(trade.commissionTL || 0).toFixed(2))}</td>
+          </tr>
+          <tr>
+            <th>Satılan Adet</th>
+            <td>{formatNumber(trade.quantity)}</td>
+          </tr>
         </tbody>
       </table>
     </div>
