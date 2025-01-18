@@ -50,7 +50,10 @@ const TradeModal = ({
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     if (trade.type === 'Satış' && trade.symbol) {
-      const maxQuantity = remainingShares[trade.symbol] || 0;
+      const maxQuantity = isEditing 
+        ? (remainingShares[trade.symbol] || 0) + Number(trade.quantity)
+        : remainingShares[trade.symbol] || 0;
+        
       if (Number(value) > maxQuantity) {
         setQuantityError(`Maksimum ${maxQuantity} adet satabilirsiniz`);
       } else {
@@ -76,7 +79,10 @@ const TradeModal = ({
 
   const handleSave = () => {
     if (trade.type === 'Satış' && trade.symbol) {
-      const maxQuantity = remainingShares[trade.symbol] || 0;
+      const maxQuantity = isEditing 
+        ? (remainingShares[trade.symbol] || 0) + Number(trade.quantity)
+        : remainingShares[trade.symbol] || 0;
+        
       if (Number(trade.quantity) > maxQuantity) {
         setQuantityError(`Maksimum ${maxQuantity} adet satabilirsiniz`);
         return;
@@ -189,6 +195,19 @@ const TradeModal = ({
               className="form-control"
               disabled={trade.type === 'Satış' && quantityError !== ''}
               placeholder={trade.type === 'Alış' ? '0.00' : undefined}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Komisyon ($)</label>
+            <input
+              type="number"
+              name="commission"
+              value={trade.commission}
+              onChange={onChange}
+              className="form-control"
+              placeholder="0.00"
+              step="0.01"
             />
           </div>
 

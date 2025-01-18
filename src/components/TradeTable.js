@@ -78,7 +78,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
     type: 'Alış',
     quantity: '',
     price: '',
-    date: ''
+    date: '',
+    commission: ''
   });
   const [openRows, setOpenRows] = useState([]);
   const menuRefs = useRef({});
@@ -303,10 +304,15 @@ const TradeTable = ({ temettuIstisnasi }) => {
           (remainingShares[newTrade.symbol] || 0) : 
           Number(newTrade.quantity);
 
+        const commission = Number(newTrade.commission) || 0;
+        const commissionTL = commission * exchangeRate;
+
         const tradeWithTL = {
           ...newTrade,
           quantity: quantity,
           price: Number(newTrade.price),
+          commission: commission,
+          commissionTL: commissionTL,
           exchangeRate: exchangeRate,
           priceTL: Number(newTrade.price) * exchangeRate * (newTrade.type === 'Temettü' ? 1 : quantity)
         };
@@ -316,10 +322,11 @@ const TradeTable = ({ temettuIstisnasi }) => {
           const updatedTrades = [...trades];
           
           if (tradeWithTL.type === 'Satış') {
-            // Düzenlenen işlemi hariç tut ve stok kontrolü yap
+            // Düzenlenen işlem hariç diğer işlemleri hesapla
             const otherTrades = trades.filter((_, index) => index !== editingIndex);
             const tempStockLedger = {};
             
+            // Stok hesapla
             otherTrades.forEach(trade => {
               if (!tempStockLedger[trade.symbol]) {
                 tempStockLedger[trade.symbol] = 0;
@@ -331,9 +338,10 @@ const TradeTable = ({ temettuIstisnasi }) => {
               }
             });
 
-            const availableShares = tempStockLedger[newTrade.symbol] || 0;
-            if (Number(newTrade.quantity) > availableShares) {
-              addNotification(`Yetersiz hisse! ${newTrade.symbol} için satılabilecek maksimum adet: ${availableShares}`, 'error');
+            // Düzenlenen işlemin sembolü için stok kontrolü yap
+            const availableShares = tempStockLedger[tradeWithTL.symbol] || 0;
+            if (Number(tradeWithTL.quantity) > availableShares) {
+              addNotification(`Yetersiz hisse! ${tradeWithTL.symbol} için satılabilecek maksimum adet: ${availableShares}`, 'error');
               return;
             }
           }
@@ -366,7 +374,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
           type: 'Alış',
           quantity: '',
           price: '',
-          date: ''
+          date: '',
+          commission: ''
         });
         setEditingIndex(null);
       } catch (error) {
@@ -438,13 +447,43 @@ const TradeTable = ({ temettuIstisnasi }) => {
           symbols.add(trade.symbol);
         }
       });
-    } else {
-      // Satış işlemi için sadece eldeki hisseleri göster
-      Object.entries(remainingShares).forEach(([symbol, quantity]) => {
-        if (quantity > 0) {
-          symbols.add(symbol);
-        }
-      });
+    } else if (newTrade.type === 'Satış') {
+      // Düzenleme modunda
+      if (editingIndex !== null) {
+        // Düzenlenen işlem hariç diğer işlemleri hesapla
+        const otherTrades = trades.filter((_, index) => index !== editingIndex);
+        const tempStockLedger = {};
+        
+        // Stok hesapla
+        otherTrades.forEach(trade => {
+          if (!tempStockLedger[trade.symbol]) {
+            tempStockLedger[trade.symbol] = 0;
+          }
+          if (trade.type === 'Alış') {
+            tempStockLedger[trade.symbol] += Number(trade.quantity);
+          } else if (trade.type === 'Satış') {
+            tempStockLedger[trade.symbol] -= Number(trade.quantity);
+          }
+        });
+
+        // Düzenlenen işlemin sembolünü ekle
+        const editedTrade = trades[editingIndex];
+        symbols.add(editedTrade.symbol);
+
+        // Diğer sembolleri kontrol et
+        Object.entries(tempStockLedger).forEach(([symbol, quantity]) => {
+          if (quantity > 0) {
+            symbols.add(symbol);
+          }
+        });
+      } else {
+        // Yeni satış işlemi için eldeki hisseleri göster
+        Object.entries(remainingShares).forEach(([symbol, quantity]) => {
+          if (quantity > 0) {
+            symbols.add(symbol);
+          }
+        });
+      }
     }
     
     return Array.from(symbols).sort();
@@ -652,8 +691,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
                     <th>İşlem Tipi</th>
                     <th>Sembol</th>
                     <th>Adet</th>
-                    <th>Fiyat ($)</th>
-                    <th>Fiyat (₺)</th>
+                    <th>Komisyon</th>
+                    <th>Fiyat</th>
                     <th>İşlemler</th>
                   </tr>
                 </thead>
@@ -682,10 +721,12 @@ const TradeTable = ({ temettuIstisnasi }) => {
                             }
                           </td>
                           <td>
-                            {formatNumber(Number(trade.price).toFixed(2))}
+                            {formatNumber(Number(trade.commission || 0).toFixed(2))}$
+                            <span className="tl-value">({formatNumber(Number(trade.commissionTL || 0).toFixed(2))}₺)</span>
                           </td>
                           <td>
-                            {formatNumber(Number(trade.priceTL).toFixed(2))}
+                            {formatNumber(Number(trade.price).toFixed(2))}$
+                            <span className="tl-value">({formatNumber(Number(trade.priceTL / (trade.type === 'Temettü' ? 1 : trade.quantity)).toFixed(2))}₺)</span>
                           </td>
                           <td>
                             <div 
@@ -771,7 +812,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
             type: 'Alış',
             quantity: '',
             price: '',
-            date: ''
+            date: '',
+            commission: ''
           });
         }}
         trade={newTrade}
@@ -791,7 +833,10 @@ const TradeTable = ({ temettuIstisnasi }) => {
           setTradeToDelete(null);
         }}
         onConfirm={() => handleDelete(tradeToDelete.index)}
-        trade={tradeToDelete}
+        title="İşlemi Sil"
+        message={tradeToDelete ? 
+          `${tradeToDelete.symbol} hissesine ait ${tradeToDelete.date} tarihli ${tradeToDelete.type.toLowerCase()} işlemini silmek istediğinize emin misiniz?` 
+          : ''}
       />
 
       <DeleteConfirmModal

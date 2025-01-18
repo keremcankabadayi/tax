@@ -7,7 +7,7 @@ const formatNumber = (number) => {
 
 const PANTRY_ID = '60e512d0-f495-4a56-b640-e0e30632d99f';
 
-const TaxCalculation = ({ trades, profitLoss }) => {
+const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
   const [taxBrackets, setTaxBrackets] = useState(null);
   const [showTaxTooltip, setShowTaxTooltip] = useState(false);
   const [showDividendTooltip, setShowDividendTooltip] = useState(false);
@@ -68,30 +68,21 @@ const TaxCalculation = ({ trades, profitLoss }) => {
     return calculateTaxBreakdown(income).reduce((sum, bracket) => sum + bracket.tax, 0);
   };
 
-  // Özet tablodaki kâr/zarar ve temettü toplamlarını hesapla
-  const totals = trades.reduce((acc, trade) => {
-    if (trade.type === 'Temettü') {
-      acc.dividendTL += trade.priceTL;
-    }
-    return acc;
-  }, { profitTL: 0, dividendTL: 0 });
+  // Toplam kâr/zarar hesapla
+  const totalProfitLoss = Object.values(profitLoss).reduce((sum, value) => sum + (value || 0), 0);
 
-  // Özet tablodaki kâr değerlerini kullan
-  Object.keys(profitLoss).forEach(symbol => {
-    const profit = profitLoss[symbol];
-    if (profit > 0) {
-      totals.profitTL += profit;
-    }
-  });
+  // Toplam temettü hesapla
+  const totalDividend = trades
+    .filter(trade => trade.type === 'Temettü')
+    .reduce((sum, trade) => sum + Number(trade.priceTL || 0), 0);
 
-  // Temettü vergisi hesapla
-  const taxableDividend = totals.dividendTL > (taxBrackets?.temettu_istisnasi || 0) ? totals.dividendTL : 0;
-  
-  // Toplam vergilendirilebilir gelir
-  const totalTaxableIncome = totals.profitTL + taxableDividend;
-  
-  // Toplam vergi
-  const totalTax = calculateTax(totalTaxableIncome);
+  // Toplam komisyon hesapla
+  const totalCommission = trades
+    .reduce((sum, trade) => sum + Number(trade.commissionTL || 0), 0);
+
+  // Vergiye tabi gelir
+  const taxableIncome = totalProfitLoss + totalDividend - totalCommission;
+  const taxAmount = calculateTax(taxableIncome);
 
   if (!taxBrackets) return <div>Vergi bilgileri yükleniyor...</div>;
 
@@ -116,20 +107,7 @@ const TaxCalculation = ({ trades, profitLoss }) => {
             </tr>
           ))}
         </tbody>
-        <tfoot>
-          <tr>
-            <td colSpan="2" style={{ textAlign: 'left', fontStyle: 'italic', color: '#666', fontSize: '0.85rem', paddingTop: '0.8rem' }}>
-              Temettü istisnası: {formatNumber(taxBrackets.temettu_istisnasi)} ₺
-            </td>
-          </tr>
-        </tfoot>
       </table>
-    </div>
-  );
-
-  const renderDividendTooltip = () => (
-    <div className="tooltip dividend-tooltip">
-      <div>İstisna Tutarı: {formatNumber(taxBrackets.temettu_istisnasi)} ₺</div>
     </div>
   );
 
@@ -155,61 +133,57 @@ const TaxCalculation = ({ trades, profitLoss }) => {
           </div>
         </h3>
         <table className="tax-table">
-          <thead>
-            <tr>
-              <th>Gelir Türü</th>
-              <th>Tutar (₺)</th>
-              <th>Vergilendirilebilir (₺)</th>
-            </tr>
-          </thead>
           <tbody>
             <tr>
-              <td>Kâr</td>
-              <td>{formatNumber(totals.profitTL.toFixed(2))}</td>
-              <td>{formatNumber(totals.profitTL.toFixed(2))}</td>
+              <td>Alım-Satım Kâr/Zarar</td>
+              <td>{formatNumber(totalProfitLoss.toFixed(2))}</td>
             </tr>
             <tr>
-              <td>Temettü</td>
-              <td>{formatNumber(totals.dividendTL.toFixed(2))}</td>
-              <td>{formatNumber(taxableDividend.toFixed(2))}</td>
+              <td>Temettü Geliri</td>
+              <td>{formatNumber(totalDividend.toFixed(2))}</td>
+            </tr>
+            <tr>
+              <td>Komisyon Gideri</td>
+              <td>-{formatNumber(totalCommission.toFixed(2))}</td>
             </tr>
             <tr className="total-row">
-              <td>Toplam</td>
-              <td>{formatNumber((totals.profitTL + totals.dividendTL).toFixed(2))}</td>
-              <td>{formatNumber(totalTaxableIncome.toFixed(2))}</td>
+              <td>Vergiye Tabi Gelir</td>
+              <td>{formatNumber(taxableIncome.toFixed(2))}</td>
             </tr>
           </tbody>
         </table>
 
-        <div className="tax-summary">
-          <div className="calculation-explanation">
-            <p>Vergi dilimleri bazında hesaplama:</p>
+        {calculateTaxBreakdown(taxableIncome).length > 0 && (
+          <div className="tax-breakdown">
+            <h4>Vergi Dilimi Detayları</h4>
             <table className="tax-breakdown-table">
               <thead>
                 <tr>
                   <th>Dilim</th>
+                  <th>Matrah</th>
                   <th>Oran</th>
                   <th>Vergi</th>
                 </tr>
               </thead>
               <tbody>
-                {calculateTaxBreakdown(totalTaxableIncome).map((bracket, index) => (
+                {calculateTaxBreakdown(taxableIncome).map((bracket, index) => (
                   <tr key={index}>
                     <td>
-                      {formatNumber(bracket.start)} - {typeof bracket.end === 'number' ? formatNumber(bracket.end) : bracket.end}
+                      {formatNumber(bracket.start)} - {bracket.end ? formatNumber(bracket.end) : '∞'} ₺
                     </td>
+                    <td>{formatNumber(bracket.taxable.toFixed(2))}</td>
                     <td>%{bracket.rate}</td>
-                    <td>{formatNumber(bracket.tax.toFixed(2))} ₺</td>
+                    <td>{formatNumber(bracket.tax.toFixed(2))}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <div className="total-tax-container">
+              <span className="total-tax-label">Toplam Vergi:</span>
+              <span className="total-tax-amount">{formatNumber(taxAmount.toFixed(2))} ₺</span>
+            </div>
           </div>
-          <div className="tax-detail total">
-            <span>Ödenecek Vergi:</span>
-            <span>{formatNumber(totalTax.toFixed(2))} ₺</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
