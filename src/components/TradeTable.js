@@ -763,8 +763,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
                     <th>İşlem Tipi</th>
                     <th>Sembol</th>
                     <th>Adet</th>
-                    <th>Komisyon</th>
                     <th>Fiyat</th>
+                    <th>Toplam</th>
                     <th>İşlemler</th>
                   </tr>
                 </thead>
@@ -793,12 +793,11 @@ const TradeTable = ({ temettuIstisnasi }) => {
                             }
                           </td>
                           <td>
-                            {formatNumber(Number(trade.commission || 0).toFixed(2))}$
-                            <span className="tl-value">({formatNumber(Number(trade.commissionTL || 0).toFixed(2))}₺)</span>
+                            {formatNumber(Number(trade.price).toFixed(2))}$
                           </td>
                           <td>
-                            {formatNumber(Number(trade.price).toFixed(2))}$
-                            <span className="tl-value">({formatNumber(Number(trade.priceTL / (trade.type === 'Temettü' ? 1 : trade.quantity)).toFixed(2))}₺)</span>
+                            {formatNumber(Number(trade.quantity * trade.price).toFixed(2))}$
+                            <span className="tl-value">({formatNumber(Number(trade.priceTL).toFixed(2))}₺)</span>
                           </td>
                           <td>
                             <div 

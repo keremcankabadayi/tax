@@ -78,11 +78,9 @@
 
 .trade-table th,
 .trade-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .trade-table th:first-child,
@@ -117,9 +115,15 @@
   width: 10%;
 }
 
+.trade-table th:nth-child(6),
+.trade-table td:nth-child(6) {
+  min-width: 180px;
+  white-space: nowrap;
+}
+
 .trade-table thead th {
   font-weight: 600;
-  text-align: left;
+  text-align: center;
   background-color: #4a90e2;
   color: white;
   border-bottom: 2px solid #eee;
