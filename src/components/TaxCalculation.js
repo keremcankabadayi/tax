@@ -85,8 +85,8 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
       }
     });
 
-    const exemptDividend = Math.min(totalDividend, taxBrackets?.temettu_istisnasi || 0);
-    const taxableDividend = Math.max(0, totalDividend - (taxBrackets?.temettu_istisnasi || 0));
+    const exemptDividend = totalDividend <= (taxBrackets?.temettu_istisnasi || 0) ? totalDividend : 0;
+    const taxableDividend = totalDividend <= (taxBrackets?.temettu_istisnasi || 0) ? 0 : totalDividend;
 
     const taxableIncome = totalProfitLoss + taxableDividend - totalCommission - totalWithholding;
 
@@ -144,7 +144,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
         <h4>Temettü İstisnası</h4>
         <p>
           {formatNumber(taxBrackets.temettu_istisnasi)} ₺'ye kadar olan temettü gelirleri vergiden muaftır. 
-          Bu tutarı aşan kısım için yukarıdaki vergi dilimleri uygulanır.
+          Bu tutarı aşan temettü gelirlerinin tamamı vergiye tabidir.
         </p>
       </div>
     </div>
@@ -178,12 +178,22 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
               <td>{formatNumber(totalProfitLoss.toFixed(2))}</td>
             </tr>
             <tr>
-              <td>Temettü Geliri</td>
               <td>
-                {formatNumber(totalDividend.toFixed(2))}
-                <span style={{ marginLeft: '8px', color: '#666', fontSize: '0.9em' }}>
-                  (Vergiye Tabi: {formatNumber(taxableDividend.toFixed(2))})
-                </span>
+                Temettü Geliri
+              </td>
+              <td>
+                {totalDividend <= (taxBrackets?.temettu_istisnasi || 0) ? (
+                  <>
+                    <span style={{ textDecoration: 'line-through', color: '#666' }}>
+                      {formatNumber(totalDividend.toFixed(2))}
+                    </span>
+                    <span style={{ marginLeft: '8px', color: '#16a34a', fontSize: '0.9em' }}>
+                      (İstisna kapsamında)
+                    </span>
+                  </>
+                ) : (
+                  formatNumber(totalDividend.toFixed(2))
+                )}
               </td>
             </tr>
             <tr>
