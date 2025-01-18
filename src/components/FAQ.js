@@ -8,13 +8,19 @@ function FAQ() {
   const [openQuestion, setOpenQuestion] = useState(null);
 
   useEffect(() => {
-    const loadFAQData = async () => {
+    const loadFAQData = async (retryCount = 0) => {
       try {
         const data = await fetchFAQData();
         setFaqData(data.faq || []);
+        setLoading(false);
       } catch (error) {
         console.error('FAQ verileri yüklenemedi:', error);
-      } finally {
+        if (error.message?.includes('429')) {
+          // Exponential backoff with max delay of 10 seconds
+          const delay = Math.min(Math.pow(2, retryCount) * 1000, 10000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return loadFAQData(retryCount + 1);
+        }
         setLoading(false);
       }
     };
@@ -27,7 +33,11 @@ function FAQ() {
   };
 
   if (loading) {
-    return <div className="faq-container">Yükleniyor...</div>;
+    return (
+      <div className="loading-overlay">
+        <div className="spinner" />
+      </div>
+    );
   }
 
   return (

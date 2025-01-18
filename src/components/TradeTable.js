@@ -991,12 +991,8 @@ const TradeTable = ({ temettuIstisnasi }) => {
       />
 
       {loading && (
-        <div className="loading-message">
-          {retryCount > 0 ? (
-            `Rate limit aşıldı. ${retryCount}. deneme yapılıyor... (${retryDelay} saniye bekleniyor)`
-          ) : (
-            'Veriler yükleniyor...'
-          )}
+        <div className="loading-overlay">
+          <div className="spinner" />
         </div>
       )}
     </div>
