@@ -83,6 +83,7 @@
   border-collapse: collapse;
   margin-top: 0.5rem;
   font-size: 0.9em;
+  border-bottom: 1px solid #ddd;
 }
 
 .sale-amounts-table th,
@@ -93,16 +94,16 @@
 }
 
 .sale-amounts-table thead th {
-  background-color: #f0fdf4;
+  background-color: white;
   font-weight: 500;
-  color: #15803d;
+  color: #0f5132;
   text-align: center;
 }
 
 .sale-amounts-table tbody th {
-  background-color: #f0fdf4;
+  background-color: white;
   font-weight: 500;
-  color: #15803d;
+  color: #0f5132;
   text-align: left;
   width: 40%;
 }
@@ -128,4 +129,12 @@
 .sale-amounts-table th,
 .sale-amounts-table td {
   border: 1px solid #ddd;
+}
+
+.sale-amounts-table tbody td {
+  background-color: white;
+}
+
+.sale-amounts-table tbody tr:hover td {
+  background-color: #f8f9fa;
 }

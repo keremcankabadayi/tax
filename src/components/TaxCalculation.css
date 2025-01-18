@@ -174,69 +174,102 @@
 
 .tooltip {
   position: absolute;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 1.2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
   z-index: 9999;
-  width: 320px;
+  width: 360px;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.6;
   left: 50%;
   top: 100%;
   transform: translateX(-50%);
-  margin-top: 8px;
+  margin-top: 12px;
   visibility: visible;
   opacity: 1;
-  transition: opacity 0.2s, visibility 0.2s;
+  transition: all 0.3s ease;
   pointer-events: none;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background-color: #ffffff;
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .tax-brackets-tooltip {
   width: 100%;
-  table-layout: fixed;
 }
 
 .tax-brackets-tooltip table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 1rem;
   background-color: white;
-  table-layout: fixed;
 }
 
 .tax-brackets-tooltip th {
-  background-color: #f8fafc;
-  color: #666;
-  font-weight: 500;
-  padding: 0.6rem;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #f0f2f5;
-  white-space: nowrap;
-}
-
-.tax-brackets-tooltip th:first-child {
-  width: 65%;
-}
-
-.tax-brackets-tooltip th:last-child {
-  width: 35%;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .tax-brackets-tooltip td {
-  padding: 0.6rem;
-  border-bottom: 1px solid #f0f2f5;
-  color: #2c3e50;
-  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 0.9rem;
 }
 
-.tax-brackets-tooltip td:first-child {
-  width: 65%;
-  white-space: nowrap;
+.tax-brackets-tooltip tr:last-child td {
+  border-bottom: none;
 }
 
-.tax-brackets-tooltip td:last-child {
-  width: 35%;
+.tax-brackets-tooltip .rate-value {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.tooltip-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tooltip-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.tooltip-section h4 {
+  color: #334155;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+.tooltip-section p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .total-tax-container {

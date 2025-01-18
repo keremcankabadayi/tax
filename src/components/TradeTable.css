@@ -533,13 +533,19 @@ select.table-input {
 }
 
 .summary-table .total-row {
+  background-color: #e2e8f0;
   font-weight: 700;
-  background-color: #f8f9fa;
+  border-top: 2px solid #4a90e2;
 }
 
 .summary-table .total-row td {
-  border-top: 2px solid #dee2e6;
-  color: #2c3e50;
+  color: #1e293b;
+  padding: 14px 8px;
+}
+
+.summary-table .total-row td:first-child {
+  font-size: 1.1em;
+  color: #1e293b;
 }
 
 .summary-row {

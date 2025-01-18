@@ -85,8 +85,8 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
       }
     });
 
-    const exemptDividend = Math.min(totalDividend, temettuIstisnasi || 0);
-    const taxableDividend = Math.max(0, totalDividend - (temettuIstisnasi || 0));
+    const exemptDividend = Math.min(totalDividend, taxBrackets?.temettu_istisnasi || 0);
+    const taxableDividend = Math.max(0, totalDividend - (taxBrackets?.temettu_istisnasi || 0));
 
     const taxableIncome = totalProfitLoss + taxableDividend - totalCommission - totalWithholding;
 
@@ -117,26 +117,36 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
 
   const renderTaxBracketsTooltip = () => (
     <div className="tax-brackets-tooltip">
-      <table>
-        <thead>
-          <tr>
-            <th>Gelir Aralığı</th>
-            <th>Vergi Oranı</th>
-          </tr>
-        </thead>
-        <tbody>
-          {taxBrackets.vergi_dilimleri.map((bracket, index) => (
-            <tr key={index}>
-              <td>
-                {bracket.alt_limit === 0 ? '0' : formatNumber(bracket.alt_limit)} - {bracket.ust_limit ? formatNumber(bracket.ust_limit) : '∞'} ₺
-              </td>
-              <td>
-                <span className="rate-value">%{bracket.oran}</span>
-              </td>
+      <div className="tooltip-section">
+        <h4>Vergi Dilimleri</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Gelir Aralığı</th>
+              <th>Vergi Oranı</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {taxBrackets.vergi_dilimleri.map((bracket, index) => (
+              <tr key={index}>
+                <td>
+                  {bracket.alt_limit === 0 ? '0' : formatNumber(bracket.alt_limit)} - {bracket.ust_limit ? formatNumber(bracket.ust_limit) : '∞'} ₺
+                </td>
+                <td>
+                  <span className="rate-value">%{bracket.oran}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="tooltip-section">
+        <h4>Temettü İstisnası</h4>
+        <p>
+          {formatNumber(taxBrackets.temettu_istisnasi)} ₺'ye kadar olan temettü gelirleri vergiden muaftır. 
+          Bu tutarı aşan kısım için yukarıdaki vergi dilimleri uygulanır.
+        </p>
+      </div>
     </div>
   );
 

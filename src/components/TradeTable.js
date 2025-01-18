@@ -418,12 +418,12 @@ const TradeTable = ({ temettuIstisnasi }) => {
       const symbol = tradeToDelete.symbol;
       let availableShares = 0;
       
-      // İlgili hissenin kalan bakiyesini hesapla
+      // İlgili hissenin kalan bakiyesini hesapla (bu alıştan önceki işlemlerden)
       trades.slice(0, index).forEach(trade => {
         if (trade.symbol === symbol) {
           if (trade.type === 'Alış') {
             availableShares += Number(trade.quantity);
-          } else {
+          } else if (trade.type === 'Satış') {
             availableShares -= Number(trade.quantity);
           }
         }
@@ -431,14 +431,18 @@ const TradeTable = ({ temettuIstisnasi }) => {
 
       // Sonraki satışları kontrol et
       let requiredShares = 0;
+      let hasLaterSales = false;
       laterTrades.forEach(trade => {
         if (trade.symbol === symbol && trade.type === 'Satış') {
+          hasLaterSales = true;
           requiredShares += Number(trade.quantity);
+        } else if (trade.symbol === symbol && trade.type === 'Alış') {
+          availableShares += Number(trade.quantity);
         }
       });
 
-      // Eğer bu alış işleminin silinmesi durumunda yetersiz hisse olacaksa
-      if (requiredShares > availableShares) {
+      // Eğer bu alış işleminin silinmesi durumunda yetersiz hisse olacaksa VE sonraki satışlar varsa
+      if (requiredShares > availableShares && hasLaterSales) {
         addNotification('Bu alış işlemi silinemez çünkü sonraki satış işlemleri için gerekli!', 'error');
         return;
       }
@@ -638,14 +642,15 @@ const TradeTable = ({ temettuIstisnasi }) => {
                 {openRows.includes(`summary-${symbol}`) && (
                   <tr className="dividend-details-row">
                     <td colSpan="4">
+                      <div style={{ marginBottom: '10px', fontWeight: 'bold', color: '#2c3e50' }}>Temettüler</div>
                       <table className="dividend-details-table">
                         <thead>
                           <tr>
                             <th>Tarih</th>
                             <th>Hisse Adedi</th>
+                            <th>Stopaj ($)</th>
                             <th>Hisse Başı ($)</th>
                             <th>Toplam ($)</th>
-                            <th>Toplam (₺)</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -656,9 +661,19 @@ const TradeTable = ({ temettuIstisnasi }) => {
                               <tr key={index}>
                                 <td>{formatDateTR(dividend.date)}</td>
                                 <td>{formatNumber(dividend.quantity || 0)}</td>
+                                <td>
+                                  {formatNumber(Number(dividend.withholding || 0).toFixed(2))}$
+                                  <span style={{ marginLeft: '4px', color: '#666', fontSize: '0.9em' }}>
+                                    ({formatNumber((Number(dividend.withholding || 0) * dividend.exchangeRate).toFixed(2))}₺)
+                                  </span>
+                                </td>
                                 <td>{formatNumber(((dividend.price || 0) / (dividend.quantity || 1)).toFixed(4))}</td>
-                                <td>{formatNumber((dividend.price || 0).toFixed(2))}</td>
-                                <td>{formatNumber((dividend.priceTL || 0).toFixed(2))}</td>
+                                <td>
+                                  {formatNumber((dividend.price || 0).toFixed(2))}$
+                                  <span style={{ marginLeft: '4px', color: '#666', fontSize: '0.9em' }}>
+                                    ({formatNumber((dividend.priceTL || 0).toFixed(2))}₺)
+                                  </span>
+                                </td>
                               </tr>
                             ))}
                         </tbody>

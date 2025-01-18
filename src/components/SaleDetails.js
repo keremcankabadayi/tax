@@ -174,8 +174,8 @@ const SaleDetails = ({ trade, trades, indexData }) => {
                     <th>Alış Tarihi</th>
                     <th>Adet</th>
                     <th>Alış Fiyatı ($)</th>
-                    <th>Alış Tutarı ($)</th>
-                    <th>Alış Tutarı (₺)</th>
+                    <th>Alış Tutarı</th>
+                    <th>Satış Tutarı</th>
                     <th>Endeks Değişimi</th>
                     <th>Kâr/Zarar (₺)</th>
                   </tr>
@@ -184,19 +184,19 @@ const SaleDetails = ({ trade, trades, indexData }) => {
                   {fifoDetails.map((detail, index) => (
                     <tr key={index}>
                       <td>{formatDateTR(detail.date)}</td>
-                      <td>{formatNumber(detail.quantity)}</td>
+                      <td>{formatNumber(detail.quantity)}/{formatNumber(detail.totalQuantity)}</td>
                       <td>{formatNumber(Number(detail.buyPriceUSD).toFixed(2))}</td>
-                      <td>{formatNumber(Number(detail.totalBuyUSD).toFixed(2))}</td>
                       <td>
-                        {detail.indexChange >= 10 ? (
-                          <>
-                            <span className="strikethrough">{formatNumber(Number(detail.totalBuyTL).toFixed(2))}</span>
-                            <br />
-                            <span className="adjusted-price">{formatNumber(Number(detail.adjustedTotalBuyTL).toFixed(2))}</span>
-                          </>
-                        ) : (
-                          formatNumber(Number(detail.totalBuyTL).toFixed(2))
-                        )}
+                        {formatNumber(Number(detail.totalBuyUSD).toFixed(2))}$
+                        <span style={{ marginLeft: '4px', color: '#666', fontSize: '0.9em' }}>
+                          ({formatNumber(Number(detail.indexChange >= 10 ? detail.adjustedTotalBuyTL : detail.totalBuyTL).toFixed(2))}₺)
+                        </span>
+                      </td>
+                      <td>
+                        {formatNumber(Number(detail.totalSellUSD).toFixed(2))}$
+                        <span style={{ marginLeft: '4px', color: '#666', fontSize: '0.9em' }}>
+                          ({formatNumber(Number(detail.totalSellTL).toFixed(2))}₺)
+                        </span>
                       </td>
                       <td className={detail.indexChange >= 10 ? 'profit' : ''}>
                         {detail.indexChange ? (
@@ -229,25 +229,27 @@ const SaleDetails = ({ trade, trades, indexData }) => {
                 <thead>
                   <tr>
                     <th></th>
-                    <th>$</th>
-                    <th>₺</th>
+                    <th>Tutar</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <th>Satış Fiyatı</th>
-                    <td>{formatNumber(Number(trade.price).toFixed(2))}</td>
-                    <td>{formatNumber(Number(trade.priceTL).toFixed(2))}</td>
-                  </tr>
-                  <tr>
                     <th>Komisyon</th>
-                    <td>{formatNumber(Number(trade.commission || 0).toFixed(2))}</td>
-                    <td>{formatNumber(Number(trade.commissionTL || 0).toFixed(2))}</td>
+                    <td>
+                      {formatNumber(Number(trade.commission || 0).toFixed(2))}$
+                      <span style={{ marginLeft: '4px', color: '#666', fontSize: '0.9em' }}>
+                        ({formatNumber(Number(trade.commissionTL || 0).toFixed(2))}₺)
+                      </span>
+                    </td>
                   </tr>
                   <tr>
                     <th>Stopaj</th>
-                    <td>{formatNumber(Number(trade.withholding || 0).toFixed(2))}</td>
-                    <td>{formatNumber(Number((trade.withholding * trade.exchangeRate) || 0).toFixed(2))}</td>
+                    <td>
+                      {formatNumber(Number(trade.withholding || 0).toFixed(2))}$
+                      <span style={{ marginLeft: '4px', color: '#666', fontSize: '0.9em' }}>
+                        ({formatNumber(Number((trade.withholding * trade.exchangeRate) || 0).toFixed(2))}₺)
+                      </span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
