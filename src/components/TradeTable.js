@@ -881,44 +881,30 @@ const TradeTable = ({ temettuIstisnasi }) => {
                             <span className="tl-value">({formatNumber(Number(trade.priceTL).toFixed(2))}₺)</span>
                           </td>
                           <td>
-                            <div 
-                              className="actions-menu"
-                              ref={el => menuRefs.current[`menu-${index}`] = el}
-                            >
+                            <div className="row-actions">
                               <button 
-                                className="menu-toggle" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const menuKey = `menu-${index}`;
-                                  const currentOpen = openRows.includes(menuKey);
-                                  setOpenRows(prev => 
-                                    currentOpen 
-                                      ? prev.filter(i => i !== menuKey)
-                                      : [...prev, menuKey]
-                                  );
+                                className="action-icon edit-icon"
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setNewTrade({ ...trade });
+                                  setEditingIndex(index);
+                                  setIsModalOpen(true);
                                 }}
+                                title="Düzenle"
                               >
-                                ⋮
+                                ✎
                               </button>
-                              {openRows.includes(`menu-${index}`) && (
-                                <div className="menu-items">
-                                  <button onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    setNewTrade({ ...trade });
-                                    setEditingIndex(index);
-                                    setIsModalOpen(true);
-                                  }}>
-                                    Düzenle
-                                  </button>
-                                  <button onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    setTradeToDelete({ ...trade, index });
-                                    setIsDeleteModalOpen(true);
-                                  }}>
-                                    Sil
-                                  </button>
-                                </div>
-                              )}
+                              <button 
+                                className="action-icon delete-icon"
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setTradeToDelete({ ...trade, index });
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                title="Sil"
+                              >
+                                ×
+                              </button>
                             </div>
                           </td>
                         </tr>
