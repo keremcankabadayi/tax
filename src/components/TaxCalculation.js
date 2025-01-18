@@ -85,11 +85,16 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
       }
     });
 
-    const taxableIncome = totalProfitLoss + totalDividend - totalCommission - totalWithholding;
+    const exemptDividend = Math.min(totalDividend, temettuIstisnasi || 0);
+    const taxableDividend = Math.max(0, totalDividend - (temettuIstisnasi || 0));
+
+    const taxableIncome = totalProfitLoss + taxableDividend - totalCommission - totalWithholding;
 
     return {
       totalProfitLoss,
       totalDividend,
+      exemptDividend,
+      taxableDividend,
       totalCommission,
       totalWithholding,
       taxableIncome
@@ -99,6 +104,8 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
   const {
     totalProfitLoss,
     totalDividend,
+    exemptDividend,
+    taxableDividend,
     totalCommission,
     totalWithholding,
     taxableIncome
@@ -162,7 +169,12 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
             </tr>
             <tr>
               <td>Temettü Geliri</td>
-              <td>{formatNumber(totalDividend.toFixed(2))}</td>
+              <td>
+                {formatNumber(totalDividend.toFixed(2))}
+                <span style={{ marginLeft: '8px', color: '#666', fontSize: '0.9em' }}>
+                  (Vergiye Tabi: {formatNumber(taxableDividend.toFixed(2))})
+                </span>
+              </td>
             </tr>
             <tr>
               <td>Komisyon Gideri</td>

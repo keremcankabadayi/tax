@@ -29,14 +29,15 @@ const TradeModal = ({
 
   const calculateTotalAmount = () => {
     const exchangeRate = getExchangeRateForDate(trade.date) || 0;
-    const quantity = trade.type === 'Temettü' ? 1 : Number(trade.quantity);
-    const amount = Number(trade.price) * exchangeRate * quantity;
+    const amount = trade.type === 'Temettü' 
+      ? Number(trade.price) * exchangeRate
+      : Number(trade.price) * exchangeRate * Number(trade.quantity);
     
     console.log('Debug - Exchange Rate Calculation:', {
       date: trade.date,
       exchangeRate: exchangeRate,
       price: trade.price,
-      quantity: quantity,
+      quantity: trade.type === 'Temettü' ? 'N/A' : Number(trade.quantity),
       totalAmount: amount
     });
     
@@ -158,7 +159,7 @@ const TradeModal = ({
                 <option value="">Sembol Seçin</option>
                 {getAvailableSymbols().map(symbol => (
                   <option key={symbol} value={symbol}>
-                    {symbol} ({remainingShares[symbol] || 0} adet)
+                    {symbol}
                   </option>
                 ))}
               </select>
@@ -167,27 +168,15 @@ const TradeModal = ({
 
           <div className="form-group">
             <label>Adet</label>
-            {trade.type === 'Temettü' ? (
-              <input
-                type="number"
-                name="quantity"
-                value={remainingShares[trade.symbol] || ''}
-                disabled
-                className="form-control"
-              />
-            ) : (
-              <>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={trade.quantity}
-                  onChange={handleQuantityChange}
-                  placeholder={trade.type === 'Satış' && trade.symbol ? `Max: ${remainingShares[trade.symbol] || 0}` : "100"}
-                  className={`form-control ${quantityError ? 'error' : ''}`}
-                />
-                {quantityError && <div className="error-message">{quantityError}</div>}
-              </>
-            )}
+            <input
+              type="number"
+              name="quantity"
+              value={trade.quantity}
+              onChange={handleQuantityChange}
+              placeholder={trade.type === 'Satış' && trade.symbol ? `Max: ${remainingShares[trade.symbol] || 0}` : "100"}
+              className={`form-control ${quantityError ? 'error' : ''}`}
+            />
+            {quantityError && <div className="error-message">{quantityError}</div>}
           </div>
 
           <div className="form-group">

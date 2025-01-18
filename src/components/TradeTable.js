@@ -316,10 +316,7 @@ const TradeTable = ({ temettuIstisnasi }) => {
           return;
         }
 
-        const quantity = newTrade.type === 'Temettü' ? 
-          (remainingShares[newTrade.symbol] || 0) : 
-          Number(newTrade.quantity);
-
+        const quantity = Number(newTrade.quantity);
         const commission = Number(newTrade.commission) || 0;
         const commissionTL = commission * exchangeRate;
 
@@ -330,7 +327,9 @@ const TradeTable = ({ temettuIstisnasi }) => {
           commission: commission,
           commissionTL: commissionTL,
           exchangeRate: exchangeRate,
-          priceTL: Number(newTrade.price) * exchangeRate * (newTrade.type === 'Temettü' ? 1 : quantity)
+          priceTL: newTrade.type === 'Temettü' 
+            ? Number(newTrade.price) * exchangeRate
+            : Number(newTrade.price) * exchangeRate * quantity
         };
 
         if (editingIndex !== null) {
@@ -787,10 +786,7 @@ const TradeTable = ({ temettuIstisnasi }) => {
                           <td>{trade.type}</td>
                           <td>{trade.symbol}</td>
                           <td>
-                            {trade.type === 'Temettü' ? 
-                              formatNumber(remainingShares[trade.symbol] || 0) :
-                              formatNumber(trade.quantity)
-                            }
+                            {formatNumber(trade.quantity)}
                           </td>
                           <td>
                             {formatNumber(Number(trade.price).toFixed(2))}$
