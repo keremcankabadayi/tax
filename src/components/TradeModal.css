@@ -84,8 +84,8 @@
 
 .form-group {
   margin-bottom: 1rem;
-  width: 240px;
-  box-sizing: border-box;
+  width: 100%;
+  max-width: 280px;
 }
 
 .form-group label {
@@ -290,4 +290,15 @@ select.form-control {
   font-size: 12px;
   margin-top: 4px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.commission-divider {
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+  width: 100%;
+  max-width: 280px;
+}
+
+.commission-group {
+  margin-top: 1rem;
 } 

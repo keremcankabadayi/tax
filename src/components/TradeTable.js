@@ -94,6 +94,10 @@ const TradeTable = ({ temettuIstisnasi }) => {
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sortConfig, setSortConfig] = useState({
+    key: 'symbol',
+    direction: 'ascending'
+  });
 
   // Exchange rate verilerini çek
   useEffect(() => {
@@ -153,6 +157,11 @@ const TradeTable = ({ temettuIstisnasi }) => {
     const [year, month, day] = date.split('-');
     const formattedDate = `${day}.${month}.${year}`;
     
+    console.log('Debug - Finding Exchange Rate:', {
+      searchDate: formattedDate,
+      availableRates: Object.keys(exchangeRates).slice(0, 5) // İlk 5 tarihi göster
+    });
+    
     // Tarihleri dolaş ve verilen tarihten önceki ilk kuru bul
     for (const [rateDate, rateData] of Object.entries(exchangeRates)) {
       const [rateDay, rateMonth, rateYear] = rateDate.split('.');
@@ -160,12 +169,19 @@ const TradeTable = ({ temettuIstisnasi }) => {
       const tradeDateTime = new Date(year, month - 1, day);
       
       if (rateDateTime < tradeDateTime) {
+        console.log('Debug - Found Rate:', {
+          rateDate: rateDate,
+          rate: rateData.forex_buying
+        });
         return rateData.forex_buying;
       }
     }
     
     // Eğer uygun kur bulunamazsa en son kuru kullan
     const lastRate = Object.values(exchangeRates)[0];
+    console.log('Debug - Using Last Rate:', {
+      lastRate: lastRate ? lastRate.forex_buying : null
+    });
     return lastRate ? lastRate.forex_buying : null;
   };
 
@@ -442,9 +458,10 @@ const TradeTable = ({ temettuIstisnasi }) => {
     
     // Eğer temettü işlemi ise, herhangi bir zamanda alınmış ve hala elde olan hisseleri göster
     if (newTrade.type === 'Temettü') {
-      trades.forEach(trade => {
-        if (trade.type === 'Alış') {
-          symbols.add(trade.symbol);
+      // Sadece eldeki adedi 0'dan büyük olan sembolleri göster
+      Object.entries(remainingShares).forEach(([symbol, quantity]) => {
+        if (quantity > 0) {
+          symbols.add(symbol);
         }
       });
     } else if (newTrade.type === 'Satış') {
@@ -489,9 +506,56 @@ const TradeTable = ({ temettuIstisnasi }) => {
     return Array.from(symbols).sort();
   };
 
+  // Sıralama fonksiyonu
+  const handleSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedSymbols = (symbols) => {
+    if (!sortConfig.key) return symbols;
+
+    return [...symbols].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortConfig.key) {
+        case 'symbol':
+          aValue = a;
+          bValue = b;
+          break;
+        case 'quantity':
+          aValue = remainingShares[a] || 0;
+          bValue = remainingShares[b] || 0;
+          break;
+        case 'profit':
+          aValue = profitLossTL[a] || 0;
+          bValue = profitLossTL[b] || 0;
+          break;
+        case 'dividend':
+          const aDividends = trades.filter(t => t.symbol === a && t.type === 'Temettü')
+            .reduce((sum, t) => sum + (Number(t.priceTL) || 0), 0);
+          const bDividends = trades.filter(t => t.symbol === b && t.type === 'Temettü')
+            .reduce((sum, t) => sum + (Number(t.priceTL) || 0), 0);
+          aValue = aDividends;
+          bValue = bDividends;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+  };
+
   // Sembol bazında özet bilgileri göster
   const renderSummary = () => {
     const symbols = [...new Set(trades.map(trade => trade.symbol))];
+    const sortedSymbols = getSortedSymbols(symbols);
     
     // TL cinsinden temettü hesapla
     const dividendTotals = {};
@@ -525,14 +589,22 @@ const TradeTable = ({ temettuIstisnasi }) => {
         <table className="summary-table">
           <thead>
             <tr>
-              <th>Sembol</th>
-              <th>Eldeki Adet</th>
-              <th>Kâr/Zarar (₺)</th>
-              <th>Temettü (₺)</th>
+              <th onClick={() => handleSort('symbol')} style={{ cursor: 'pointer' }}>
+                Sembol {sortConfig.key === 'symbol' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+              </th>
+              <th onClick={() => handleSort('quantity')} style={{ cursor: 'pointer' }}>
+                Eldeki Adet {sortConfig.key === 'quantity' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+              </th>
+              <th onClick={() => handleSort('profit')} style={{ cursor: 'pointer' }}>
+                Kâr/Zarar (₺) {sortConfig.key === 'profit' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+              </th>
+              <th onClick={() => handleSort('dividend')} style={{ cursor: 'pointer' }}>
+                Temettü (₺) {sortConfig.key === 'dividend' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {symbols.map(symbol => (
+            {sortedSymbols.map(symbol => (
               <>
                 <tr 
                   key={symbol} 

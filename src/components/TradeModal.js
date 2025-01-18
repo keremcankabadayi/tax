@@ -31,6 +31,15 @@ const TradeModal = ({
     const exchangeRate = getExchangeRateForDate(trade.date) || 0;
     const quantity = trade.type === 'Temettü' ? 1 : Number(trade.quantity);
     const amount = Number(trade.price) * exchangeRate * quantity;
+    
+    console.log('Debug - Exchange Rate Calculation:', {
+      date: trade.date,
+      exchangeRate: exchangeRate,
+      price: trade.price,
+      quantity: quantity,
+      totalAmount: amount
+    });
+    
     return formatNumber(amount.toFixed(2));
   };
 
@@ -198,18 +207,24 @@ const TradeModal = ({
             />
           </div>
 
-          <div className="form-group">
-            <label>Komisyon ($)</label>
-            <input
-              type="number"
-              name="commission"
-              value={trade.commission}
-              onChange={onChange}
-              className="form-control"
-              placeholder="0.00"
-              step="0.01"
-            />
-          </div>
+          {trade.type !== 'Temettü' && (
+            <>
+              <div className="commission-divider"></div>
+              <div className="form-group commission-group">
+                <label>Komisyon ($)</label>
+                <input
+                  type="number"
+                  name="commission"
+                  value={trade.commission}
+                  onChange={onChange}
+                  className="form-control"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+            </>
+          )}
 
           {trade.price && (trade.quantity || trade.type === 'Temettü') && (
             <div className="form-group">
