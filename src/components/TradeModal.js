@@ -211,11 +211,11 @@ const TradeModal = ({
             <>
               <div className="commission-divider"></div>
               <div className="form-group commission-group">
-                <label>Komisyon ($)</label>
+                <label htmlFor="commission">Komisyon ($)</label>
                 <input
                   type="number"
                   name="commission"
-                  value={trade.commission}
+                  value={trade.commission || ''}
                   onChange={onChange}
                   className="form-control"
                   placeholder="0.00"
@@ -224,6 +224,31 @@ const TradeModal = ({
                 />
               </div>
             </>
+          )}
+
+          {(trade.type === 'Satış' || trade.type === 'Temettü') && (
+            <div className="form-group">
+              <label htmlFor="withholding">
+                Stopaj ($)
+                <span className="tooltip-icon" data-tooltip={
+                  trade.type === 'Satış' 
+                    ? "ABD'de satış sonrası ödenen stopaj vergisi, Türkiye'deki vergi hesaplamasında mahsup edilebilir."
+                    : "ABD'de temettü ödemelerinden kesilen stopaj vergisi, Türkiye'deki vergi hesaplamasında mahsup edilebilir."
+                }>
+                  ℹ️
+                </span>
+              </label>
+              <input
+                type="number"
+                name="withholding"
+                value={trade.withholding || ''}
+                onChange={onChange}
+                className="form-control"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
           )}
 
           {trade.price && (trade.quantity || trade.type === 'Temettü') && (

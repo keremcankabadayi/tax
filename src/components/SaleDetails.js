@@ -162,7 +162,11 @@ const SaleDetails = ({ trade, trades, indexData }) => {
       <table className="sale-details-table">
         <tbody>
           <tr>
-            <th>Satış Detayları</th>
+            <th>Satış Kuru</th>
+            <td>{formatNumber(Number(trade.exchangeRate).toFixed(2))}</td>
+          </tr>
+          <tr>
+            <th>Kâr/Zarar Detayları</th>
             <td>
               <table className="purchase-details-table">
                 <thead>
@@ -219,32 +223,35 @@ const SaleDetails = ({ trade, trades, indexData }) => {
             </td>
           </tr>
           <tr>
-            <th>Satış Tarihi</th>
-            <td>{formatDateTR(trade.date)}</td>
-          </tr>
-          <tr>
-            <th>Satış Fiyatı ($)</th>
-            <td>{formatNumber(Number(trade.price).toFixed(2))}</td>
-          </tr>
-          <tr>
-            <th>Satış Kuru</th>
-            <td>{formatNumber(Number(trade.exchangeRate).toFixed(2))}</td>
-          </tr>
-          <tr>
-            <th>Satış Tutarı (₺)</th>
-            <td>{formatNumber(Number(trade.priceTL).toFixed(2))}</td>
-          </tr>
-          <tr>
-            <th>Komisyon ($)</th>
-            <td>{formatNumber(Number(trade.commission || 0).toFixed(2))}</td>
-          </tr>
-          <tr>
-            <th>Komisyon (₺)</th>
-            <td>{formatNumber(Number(trade.commissionTL || 0).toFixed(2))}</td>
-          </tr>
-          <tr>
-            <th>Satılan Adet</th>
-            <td>{formatNumber(trade.quantity)}</td>
+            <th>Satış Detayları</th>
+            <td>
+              <table className="sale-amounts-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>$</th>
+                    <th>₺</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Satış Fiyatı</th>
+                    <td>{formatNumber(Number(trade.price).toFixed(2))}</td>
+                    <td>{formatNumber(Number(trade.priceTL).toFixed(2))}</td>
+                  </tr>
+                  <tr>
+                    <th>Komisyon</th>
+                    <td>{formatNumber(Number(trade.commission || 0).toFixed(2))}</td>
+                    <td>{formatNumber(Number(trade.commissionTL || 0).toFixed(2))}</td>
+                  </tr>
+                  <tr>
+                    <th>Stopaj</th>
+                    <td>{formatNumber(Number(trade.withholding || 0).toFixed(2))}</td>
+                    <td>{formatNumber(Number((trade.withholding * trade.exchangeRate) || 0).toFixed(2))}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
           </tr>
         </tbody>
       </table>

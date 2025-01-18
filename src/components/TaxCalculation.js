@@ -68,20 +68,42 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     return calculateTaxBreakdown(income).reduce((sum, bracket) => sum + bracket.tax, 0);
   };
 
-  // Toplam kâr/zarar hesapla
-  const totalProfitLoss = Object.values(profitLoss).reduce((sum, value) => sum + (value || 0), 0);
+  const calculateTotals = () => {
+    let totalDividend = 0;
+    let totalCommission = 0;
+    let totalWithholding = 0;
 
-  // Toplam temettü hesapla
-  const totalDividend = trades
-    .filter(trade => trade.type === 'Temettü')
-    .reduce((sum, trade) => sum + Number(trade.priceTL || 0), 0);
+    const totalProfitLoss = Object.values(profitLoss).reduce((sum, value) => sum + (value || 0), 0);
 
-  // Toplam komisyon hesapla
-  const totalCommission = trades
-    .reduce((sum, trade) => sum + Number(trade.commissionTL || 0), 0);
+    trades.forEach(trade => {
+      if (trade.type === 'Satış') {
+        totalCommission += Number(trade.commissionTL || 0);
+        totalWithholding += Number((trade.withholding * trade.exchangeRate) || 0);
+      } else if (trade.type === 'Temettü') {
+        totalDividend += Number(trade.priceTL || 0);
+        totalWithholding += Number((trade.withholding * trade.exchangeRate) || 0);
+      }
+    });
 
-  // Vergiye tabi gelir
-  const taxableIncome = totalProfitLoss + totalDividend - totalCommission;
+    const taxableIncome = totalProfitLoss + totalDividend - totalCommission - totalWithholding;
+
+    return {
+      totalProfitLoss,
+      totalDividend,
+      totalCommission,
+      totalWithholding,
+      taxableIncome
+    };
+  };
+
+  const {
+    totalProfitLoss,
+    totalDividend,
+    totalCommission,
+    totalWithholding,
+    taxableIncome
+  } = calculateTotals();
+
   const taxAmount = calculateTax(taxableIncome);
 
   if (!taxBrackets) return <div>Vergi bilgileri yükleniyor...</div>;
@@ -145,6 +167,10 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
             <tr>
               <td>Komisyon Gideri</td>
               <td>-{formatNumber(totalCommission.toFixed(2))}</td>
+            </tr>
+            <tr>
+              <td>Stopaj Gideri</td>
+              <td>-{formatNumber(totalWithholding.toFixed(2))}</td>
             </tr>
             <tr className="total-row">
               <td>Vergiye Tabi Gelir</td>

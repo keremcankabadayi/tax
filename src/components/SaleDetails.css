@@ -15,9 +15,9 @@
   width: 150px;
   text-align: right;
   padding: 10px;
-  background-color: #f8f9fa;
+  background-color: #eef2ff;
   font-weight: 600;
-  color: #495057;
+  color: #4f46e5;
   border: 1px solid #eee;
 }
 
@@ -38,8 +38,8 @@
 .purchase-details-table th {
   text-align: center;
   padding: 8px;
-  background-color: #f8f9fa;
-  color: #495057;
+  background-color: #f0f9ff;
+  color: #0369a1;
   font-weight: 600;
   font-size: 0.85em;
   border: 1px solid #eee;
@@ -53,12 +53,12 @@
 }
 
 .profit {
-  color: #2ecc71;
+  color: #16a34a;
   font-weight: 600;
 }
 
 .loss {
-  color: #e74c3c;
+  color: #dc2626;
   font-weight: 600;
 }
 
@@ -76,4 +76,56 @@
 .adjusted-price {
   color: #2c3e50;
   font-weight: 600;
+}
+
+.sale-amounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+}
+
+.sale-amounts-table th,
+.sale-amounts-table td {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  text-align: right;
+}
+
+.sale-amounts-table thead th {
+  background-color: #f0fdf4;
+  font-weight: 500;
+  color: #15803d;
+  text-align: center;
+}
+
+.sale-amounts-table tbody th {
+  background-color: #f0fdf4;
+  font-weight: 500;
+  color: #15803d;
+  text-align: left;
+  width: 40%;
+}
+
+.sale-amounts-table td {
+  width: 30%;
+}
+
+/* Hover efektleri */
+.purchase-details-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.sale-amounts-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Border renkleri */
+.sale-details-table th,
+.sale-details-table td,
+.purchase-details-table th,
+.purchase-details-table td,
+.sale-amounts-table th,
+.sale-amounts-table td {
+  border: 1px solid #ddd;
 }

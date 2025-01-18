@@ -301,4 +301,48 @@ select.form-control {
 
 .commission-group {
   margin-top: 1rem;
+}
+
+.withholding-group {
+  margin-top: 1rem;
+}
+
+.tooltip-icon {
+  margin-left: 0.5rem;
+  cursor: help;
+  font-size: 0.9em;
+  opacity: 0.7;
+  position: relative;
+}
+
+.tooltip-icon:hover {
+  opacity: 1;
+}
+
+.tooltip-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  background-color: #333;
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: normal;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1000;
+  width: max-content;
+  max-width: 300px;
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tooltip-icon:hover::after {
+  visibility: visible;
+  opacity: 1;
 } 
