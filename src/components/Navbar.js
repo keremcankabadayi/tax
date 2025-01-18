@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 
 function Navbar() {
   return (
