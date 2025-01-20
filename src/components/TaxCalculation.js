@@ -27,8 +27,8 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     fetchTaxBrackets();
   }, []);
 
-  const calculateTaxBreakdown = (income, hasProfitFromTrades) => {
-    if (!taxBrackets || income <= 0 || !hasProfitFromTrades) return [];
+  const calculateTaxBreakdown = (income) => {
+    if (!taxBrackets || income <= 0) return [];
     
     const brackets = taxBrackets.vergi_dilimleri;
     const breakdown = [];
@@ -63,9 +63,9 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     return breakdown;
   };
 
-  const calculateTax = (income, hasProfitFromTrades) => {
-    if (!taxBrackets || income <= 0 || !hasProfitFromTrades) return 0;
-    return calculateTaxBreakdown(income, hasProfitFromTrades).reduce((sum, bracket) => sum + bracket.tax, 0);
+  const calculateTax = (income) => {
+    if (!taxBrackets || income <= 0) return 0;
+    return calculateTaxBreakdown(income).reduce((sum, bracket) => sum + bracket.tax, 0);
   };
 
   const calculateTotals = () => {
@@ -119,7 +119,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     hasProfitFromTrades
   } = calculateTotals();
 
-  const taxAmount = calculateTax(taxableIncome, hasProfitFromTrades);
+  const taxAmount = calculateTax(taxableIncome);
 
   if (!taxBrackets) return <div>Vergi bilgileri yükleniyor...</div>;
 
@@ -227,7 +227,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
           </tbody>
         </table>
 
-        {taxableIncome > 0 && hasProfitFromTrades && (
+        {taxableIncome > 0 && (
           <div className="tax-breakdown">
             <h4>Vergi Dilimi Detayları</h4>
             <table className="tax-breakdown-table">
@@ -240,7 +240,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
                 </tr>
               </thead>
               <tbody>
-                {calculateTaxBreakdown(taxableIncome, hasProfitFromTrades).map((bracket, index) => (
+                {calculateTaxBreakdown(taxableIncome).map((bracket, index) => (
                   <tr key={index}>
                     <td>
                       {formatNumber(bracket.start)} - {bracket.end ? formatNumber(bracket.end) : '∞'} ₺
