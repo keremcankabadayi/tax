@@ -48,15 +48,6 @@ const TradeModal = ({
     return formatNumber((getExchangeRateForDate(trade.date) || 0).toFixed(2));
   };
 
-  const getLastYearRange = () => {
-    const date = new Date();
-    const lastYear = date.getFullYear() - 1;
-    return {
-      start: `${lastYear}-01-01`,
-      end: `${lastYear}-12-31`
-    };
-  };
-
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     if (trade.type === 'Satış' && trade.symbol) {
@@ -101,8 +92,6 @@ const TradeModal = ({
     onSave();
   };
 
-  const dateRange = getLastYearRange();
-
   return (
     <div 
       className="modal-overlay"
@@ -121,8 +110,7 @@ const TradeModal = ({
               name="date"
               value={trade.date}
               onChange={handleDateChange}
-              min={dateRange.start}
-              max={dateRange.end}
+              max={today}
               className="form-control"
             />
           </div>
