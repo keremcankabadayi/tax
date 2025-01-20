@@ -76,8 +76,10 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     const totalProfitLoss = Object.values(profitLoss).reduce((sum, value) => sum + (value || 0), 0);
 
     trades.forEach(trade => {
+      // Her işlemin komisyonunu ekle (alış veya satış)
+      totalCommission += Number(trade.commissionTL || 0);
+      
       if (trade.type === 'Satış') {
-        totalCommission += Number(trade.commissionTL || 0);
         totalWithholding += Number((trade.withholding * trade.exchangeRate) || 0);
       } else if (trade.type === 'Temettü') {
         totalDividend += Number(trade.priceTL || 0);
@@ -211,7 +213,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
           </tbody>
         </table>
 
-        {calculateTaxBreakdown(taxableIncome).length > 0 && (
+        {taxableIncome > 0 && calculateTaxBreakdown(taxableIncome).length > 0 && (
           <div className="tax-breakdown">
             <h4>Vergi Dilimi Detayları</h4>
             <table className="tax-breakdown-table">
