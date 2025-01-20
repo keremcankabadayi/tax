@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TaxCalculation.css';
+import { fetchFromPantry } from '../utils/api';
 
 const formatNumber = (number) => {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -16,8 +17,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
   useEffect(() => {
     const fetchTaxBrackets = async () => {
       try {
-        const response = await fetch(`https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/tax_brackets`);
-        const data = await response.json();
+        const data = await fetchFromPantry('tax_brackets');
         setTaxBrackets(data['2024']);
       } catch (error) {
         console.error('Vergi dilimleri alınamadı:', error);

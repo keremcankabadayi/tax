@@ -1,3 +1,5 @@
+import { getCacheData, setCacheData } from './cache';
+
 const PANTRY_ID = '60e512d0-f495-4a56-b640-e0e30632d99f';
 const BASE_URL = 'https://getpantry.cloud/apiv1/pantry';
 
@@ -8,6 +10,12 @@ const MAX_RETRIES = 3; // Maximum number of retries
 const INITIAL_RETRY_DELAY = 2000; // 2 seconds
 
 export const fetchFromPantry = async (basketName, retryCount = 0, onRetry = null) => {
+  // Önce cache'i kontrol et
+  const cachedData = getCacheData(basketName);
+  if (cachedData) {
+    return cachedData;
+  }
+
   // Kuyruğa yeni istek ekle
   return new Promise((resolve, reject) => {
     requestQueue = requestQueue
@@ -30,6 +38,8 @@ export const fetchFromPantry = async (basketName, retryCount = 0, onRetry = null
           }
           
           const data = await response.json();
+          // Başarılı cevabı cache'e kaydet
+          setCacheData(basketName, data);
           resolve(data);
         } catch (error) {
           reject(error);
