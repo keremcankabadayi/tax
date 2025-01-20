@@ -345,4 +345,29 @@ select.form-control {
 .tooltip-icon:hover::after {
   visibility: visible;
   opacity: 1;
+}
+
+.symbol-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.symbol-input-container .form-control {
+  width: 100%;
+  padding-right: 30px;
+}
+
+.custom-symbol-icon {
+  position: absolute;
+  right: 10px;
+  color: #4a90e2;
+  font-size: 1.1rem;
+  cursor: help;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.custom-symbol-icon:hover {
+  opacity: 1;
 } 

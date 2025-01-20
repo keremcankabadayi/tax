@@ -27,8 +27,8 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     fetchTaxBrackets();
   }, []);
 
-  const calculateTaxBreakdown = (income) => {
-    if (!taxBrackets || income <= 0) return [];
+  const calculateTaxBreakdown = (income, hasProfitFromTrades) => {
+    if (!taxBrackets || income <= 0 || !hasProfitFromTrades) return [];
     
     const brackets = taxBrackets.vergi_dilimleri;
     const breakdown = [];
@@ -63,9 +63,9 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     return breakdown;
   };
 
-  const calculateTax = (income) => {
-    if (!taxBrackets || income <= 0) return 0;
-    return calculateTaxBreakdown(income).reduce((sum, bracket) => sum + bracket.tax, 0);
+  const calculateTax = (income, hasProfitFromTrades) => {
+    if (!taxBrackets || income <= 0 || !hasProfitFromTrades) return 0;
+    return calculateTaxBreakdown(income, hasProfitFromTrades).reduce((sum, bracket) => sum + bracket.tax, 0);
   };
 
   const calculateTotals = () => {
@@ -73,7 +73,9 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     let totalCommission = 0;
     let totalWithholding = 0;
 
-    const totalProfitLoss = Object.values(profitLoss).reduce((sum, value) => sum + (value || 0), 0);
+    const rawProfitLoss = Object.values(profitLoss).reduce((sum, value) => sum + (value || 0), 0);
+    const totalProfitLoss = Math.max(0, rawProfitLoss); // Zarar varsa 0 olarak kabul et
+    const hasProfitFromTrades = rawProfitLoss > 0;
 
     trades.forEach(trade => {
       // Her işlemin komisyonunu ekle (alış veya satış)
@@ -93,27 +95,31 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
     const taxableIncome = totalProfitLoss + taxableDividend - totalCommission - totalWithholding;
 
     return {
+      rawProfitLoss,
       totalProfitLoss,
       totalDividend,
       exemptDividend,
       taxableDividend,
       totalCommission,
       totalWithholding,
-      taxableIncome
+      taxableIncome,
+      hasProfitFromTrades
     };
   };
 
   const {
+    rawProfitLoss,
     totalProfitLoss,
     totalDividend,
     exemptDividend,
     taxableDividend,
     totalCommission,
     totalWithholding,
-    taxableIncome
+    taxableIncome,
+    hasProfitFromTrades
   } = calculateTotals();
 
-  const taxAmount = calculateTax(taxableIncome);
+  const taxAmount = calculateTax(taxableIncome, hasProfitFromTrades);
 
   if (!taxBrackets) return <div>Vergi bilgileri yükleniyor...</div>;
 
@@ -177,7 +183,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
           <tbody>
             <tr>
               <td>Alım-Satım Kâr/Zarar</td>
-              <td>{formatNumber(totalProfitLoss.toFixed(2))}</td>
+              <td>{formatNumber(rawProfitLoss.toFixed(2))}</td>
             </tr>
             <tr>
               <td>
@@ -208,12 +214,20 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
             </tr>
             <tr className="total-row">
               <td>Vergiye Tabi Gelir</td>
-              <td>{formatNumber(taxableIncome.toFixed(2))}</td>
+              <td>
+                {taxableIncome <= 0 ? (
+                  <span style={{ textDecoration: 'line-through', color: '#666' }}>
+                    {formatNumber(taxableIncome.toFixed(2))}
+                  </span>
+                ) : (
+                  formatNumber(taxableIncome.toFixed(2))
+                )}
+              </td>
             </tr>
           </tbody>
         </table>
 
-        {taxableIncome > 0 && calculateTaxBreakdown(taxableIncome).length > 0 && (
+        {taxableIncome > 0 && hasProfitFromTrades && (
           <div className="tax-breakdown">
             <h4>Vergi Dilimi Detayları</h4>
             <table className="tax-breakdown-table">
@@ -226,7 +240,7 @@ const TaxCalculation = ({ trades, profitLoss, temettuIstisnasi }) => {
                 </tr>
               </thead>
               <tbody>
-                {calculateTaxBreakdown(taxableIncome).map((bracket, index) => (
+                {calculateTaxBreakdown(taxableIncome, hasProfitFromTrades).map((bracket, index) => (
                   <tr key={index}>
                     <td>
                       {formatNumber(bracket.start)} - {bracket.end ? formatNumber(bracket.end) : '∞'} ₺

@@ -140,6 +140,15 @@ const TradeModal = ({
                 placeholder="AAPL"
                 className="form-control"
               />
+            ) : trade.type === 'Temettü' && getAvailableSymbols().length === 0 ? (
+              <input
+                type="text"
+                name="symbol"
+                value={trade.symbol}
+                onChange={handleChange}
+                placeholder="AAPL"
+                className="form-control"
+              />
             ) : (
               <select
                 name="symbol"
